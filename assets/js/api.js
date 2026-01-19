@@ -28,7 +28,17 @@ async function fetchWithAuth(endpoint, options = {}) {
     console.warn('Unauthorized access');
   }
 
-  const data = await response.json();
+  let data = {};
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    data = await response.json();
+  } else {
+    // If not JSON, it might be an HTML error page (404, 500)
+    const text = await response.text();
+    console.error('Non-JSON response received:', text);
+    data = { error: 'Error del servidor (No JSON)', details: text.substring(0, 100) };
+  }
+
   if (!response.ok) {
     throw { status: response.status, ...data };
   }

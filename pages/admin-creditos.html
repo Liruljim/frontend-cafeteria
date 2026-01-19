@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Créditos | Cafetería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body data-page="creditos" class="bg-gray-900 text-white min-h-screen">
+    <div class="flex min-h-screen">
+        <div id="sidebar-slot"></div>
+        <main class="flex-1">
+            <div id="topbar-slot"></div>
+
+            <div class="p-6 max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold">Gestión de Créditos</h1>
+                    <div class="bg-blue-900/20 border border-blue-900/50 rounded-lg px-4 py-2 text-blue-400 text-sm">
+                        Total en Deuda: <span id="lblTotalGlobal" class="font-bold text-lg ml-2">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Búsqueda -->
+                <div class="mb-6">
+                    <input type="text" id="searchInput" placeholder="Buscar cliente con saldo por nombre o cédula..." 
+                        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-5 py-3 text-white focus:border-blue-500 outline-none shadow-inner">
+                </div>
+
+                <!-- Tabla de Clientes con Saldo -->
+                <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-2xl">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-gray-700/50 uppercase font-black text-xs text-gray-400">
+                            <tr>
+                                <th class="px-6 py-4">Cliente</th>
+                                <th class="px-6 py-4">Cédula</th>
+                                <th class="px-6 py-4">Pedidos Pend.</th>
+                                <th class="px-6 py-4">Saldo Pendiente</th>
+                                <th class="px-6 py-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="creditsTableBody" class="divide-y divide-gray-700">
+                           <tr><td colspan="5" class="px-6 py-12 text-center text-gray-500 italic">Cargando cuentas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Historial y Cobro -->
+    <div id="modalDetalle" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-3xl w-full max-w-4xl border border-gray-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-700 bg-gray-900/50 flex justify-between items-center">
+                <div>
+                    <h3 class="text-2xl font-black text-white" id="modalClienteNombre">Juan Pérez</h3>
+                    <p class="text-gray-400 text-sm" id="modalClienteInfo">C.I: 12.345.678</p>
+                </div>
+                <button id="closeModal" class="bg-gray-700 hover:bg-gray-600 p-2 rounded-full text-gray-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                <!-- Tabs -->
+                <div class="flex gap-4 border-b border-gray-700 mb-4">
+                    <button class="px-4 py-2 border-b-2 border-blue-500 text-blue-400 font-bold">Pedidos Pendientes</button>
+                    <!-- <button class="px-4 py-2 text-gray-500 hover:text-gray-300">Pagos Realizados</button> -->
+                </div>
+
+                <div id="detalleContent">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-gray-500 uppercase font-bold border-b border-gray-700">
+                            <tr>
+                                <th class="py-2">Fecha</th>
+                                <th class="py-2">Vencimiento</th>
+                                <th class="py-2">Monto</th>
+                                <th class="py-2">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalTableBody" class="divide-y divide-gray-800">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-700 bg-gray-900/50 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-left">
+                    <p class="text-xs text-gray-500 uppercase font-black">Total a Cobrar</p>
+                    <p class="text-3xl font-black text-green-400" id="modalTotalPagar">$0.00</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btnMarcarPago" class="px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl shadow-xl shadow-green-900/20 active:scale-95 transition-all">
+                        MARCAR PAGO TOTAL
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmación de Pago -->
+    <div id="modalConfirmar" class="hidden fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-3xl p-8 max-w-sm w-full border border-gray-700 text-center shadow-2xl">
+            <div class="mb-6 text-yellow-500 flex justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-black text-white mb-2">¿Confirmar Pago?</h3>
+            <p class="text-gray-400 text-sm mb-8">Esta acción registrará el pago completo de todas las deudas del cliente y actualizará su saldo a <span class="text-green-400 font-bold">$0.00</span>.</p>
+            <div class="flex gap-3">
+                <button id="btnCancelConfirm" class="flex-1 px-4 py-4 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-bold transition-colors">Cancelar</button>
+                <button id="btnSuccessConfirm" class="flex-1 px-4 py-4 bg-green-600 hover:bg-green-500 rounded-xl text-white font-black shadow-lg shadow-green-900/30 transition-all">SÍ, COBRAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { includeMany } from '/assets/include.js';
+        import initLayout from '/assets/js/layout.js';
+        import { apiGet, apiPost } from '/assets/js/api.js';
+        import { Toast } from '/assets/js/toast.js';
+        import { requireRole } from '/assets/js/guard.js';
+
+        await includeMany([
+            { selector: '#sidebar-slot', url: '/partials/sidebar.html' },
+            { selector: '#topbar-slot', url: '/partials/topbar.html' }
+        ]);
+        await initLayout({ pageTitle: 'Gestión de Créditos' });
+        const user = await requireRole(['admin']);
+
+        let allClients = [];
+        let selectedClientId = null;
+        let currentUser = user;
+
+        const tableBody = document.getElementById('creditsTableBody');
+        const modalDetalle = document.getElementById('modalDetalle');
+        const modalConfirmar = document.getElementById('modalConfirmar');
+        const searchInput = document.getElementById('searchInput');
+
+        async function loadCredits() {
+            try {
+                tableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Cargando datos...</td></tr>';
+                const data = await apiGet('api/creditos/clientes');
+                allClients = data || [];
+                renderCredits(allClients);
+
+                const totalGlobal = allClients.reduce((acc, c) => acc + parseFloat(c.saldo_total), 0);
+                document.getElementById('lblTotalGlobal').textContent = `$${totalGlobal.toFixed(2)}`;
+            } catch(e) {
+                console.error(e);
+                tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-red-500">Error: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderCredits(list) {
+            if (list.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">No hay clientes con saldo pendiente.</td></tr>';
+                return;
+            }
+            tableBody.innerHTML = list.map(c => `
+                <tr class="hover:bg-gray-700/30 transition-colors group">
+                    <td class="px-6 py-4">
+                        <div class="font-black text-white">${c.nombre} ${c.apellido || ''}</div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-widest">${c.email || 'SIN EMAIL'}</div>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-gray-400">${c.cedula}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="bg-blue-900/30 text-blue-400 px-3 py-1 rounded-full text-xs font-black">
+                            ${c.pedidos_pendientes}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-xl font-black text-green-400">$${parseFloat(c.saldo_total).toFixed(2)}</div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="window.verDetalle('${c.cliente_id}')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-black text-xs shadow-lg transition-transform active:scale-90">
+                            VER DETALLE
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.verDetalle = async (id) => {
+            selectedClientId = id;
+            const client = allClients.find(c => c.cliente_id === id);
+            if (!client) return;
+
+            document.getElementById('modalClienteNombre').textContent = `${client.nombre} ${client.apellido || ''}`;
+            document.getElementById('modalClienteInfo').textContent = `C.I: ${client.cedula}`;
+            document.getElementById('modalTotalPagar').textContent = `$${parseFloat(client.saldo_total).toFixed(2)}`;
+
+            try {
+                document.getElementById('modalTableBody').innerHTML = '<tr><td colspan="4" class="py-4 text-center text-gray-500">Cargando historial...</td></tr>';
+                modalDetalle.classList.remove('hidden');
+
+                const res = await apiGet(`api/creditos/historial/${id}`);
+                const pending = res.creditos || [];
+                
+                document.getElementById('modalTableBody').innerHTML = pending.map(cr => `
+                    <tr class="border-b border-gray-800/50">
+                        <td class="py-3 text-gray-400">${new Date(cr.fecha_inicio).toLocaleDateString()}</td>
+                        <td class="py-3 text-red-900/80 font-bold">${new Date(cr.fecha_vencimiento).toLocaleDateString()}</td>
+                        <td class="py-3 font-black text-white">$${parseFloat(cr.monto_total).toFixed(2)}</td>
+                        <td class="py-3">
+                            <span class="${cr.estado === 'pendiente' ? 'text-yellow-500' : 'text-green-500'} font-black text-[10px] uppercase">
+                                ${cr.estado}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch(e) {
+                Toast.show('Error al cargar historial', 'error');
+            }
+        };
+
+        searchInput.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            const filtered = allClients.filter(c => 
+                c.nombre.toLowerCase().includes(q) || 
+                (c.apellido && c.apellido.toLowerCase().includes(q)) || 
+                c.cedula.toString().includes(q)
+            );
+            renderCredits(filtered);
+        });
+
+        document.getElementById('closeModal').addEventListener('click', () => modalDetalle.classList.add('hidden'));
+        document.getElementById('btnMarcarPago').addEventListener('click', () => modalConfirmar.classList.remove('hidden'));
+        document.getElementById('btnCancelConfirm').addEventListener('click', () => modalConfirmar.classList.add('hidden'));
+
+        document.getElementById('btnSuccessConfirm').addEventListener('click', async () => {
+            try {
+                document.getElementById('btnSuccessConfirm').disabled = true;
+                document.getElementById('btnSuccessConfirm').textContent = 'PAGANDO...';
+
+                await apiPost('api/creditos/pagar-total', {
+                    cliente_id: selectedClientId,
+                    usuario_id: user.id // El admin logueado
+                });
+
+                Toast.show('¡Pago registrado con éxito!', 'success');
+                modalConfirmar.classList.add('hidden');
+                modalDetalle.classList.add('hidden');
+                loadCredits();
+            } catch(e) {
+                Toast.show('Error al registrar pago', 'error');
+            } finally {
+                document.getElementById('btnSuccessConfirm').disabled = false;
+                document.getElementById('btnSuccessConfirm').textContent = 'SÍ, COBRAR';
+            }
+        });
+
+        loadCredits();
+    </script>
+</body>
+</html>
