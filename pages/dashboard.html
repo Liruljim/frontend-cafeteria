@@ -120,6 +120,45 @@
 
     // Only admins can access dashboard
     await requireRole(['admin']);
+
+    async function loadDashboard() {
+        try {
+            const data = await apiGet('api/dashboard/metrics');
+            
+            // KPI Cards
+            document.querySelector('.grid div:nth-child(1) .text-3xl').textContent = `$ ${data.today.sales.toFixed(2)}`;
+            document.querySelector('.grid div:nth-child(2) .text-3xl').textContent = `$ ${data.today.credits.toFixed(2)}`;
+            document.querySelector('.grid div:nth-child(2) .text-xs').textContent = `${data.today.creditCount} ventas a crédito`;
+            
+            document.querySelector('.grid div:nth-child(3) .text-3xl').textContent = data.pendingClients;
+            document.querySelector('.grid div:nth-child(4) .text-3xl').textContent = data.lowStock;
+
+            // Activity
+            const activityList = document.querySelector('.mt-4.space-y-3');
+            if (data.recentActivity.length > 0) {
+                activityList.innerHTML = data.recentActivity.map(act => `
+                    <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div class="font-semibold">Venta · ${act.clientes ? act.clientes.nombre : 'Cliente Externo'}</div>
+                            <span class="text-xs px-2 py-1 rounded ${act.metodo_pago === 'CREDITO' ? 'bg-yellow-600' : 'bg-green-600'}">
+                                ${act.metodo_pago}
+                            </span>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1">
+                            $ ${parseFloat(act.total).toFixed(2)} · ${new Date(act.fecha).toLocaleString()}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                activityList.innerHTML = '<p class="text-center text-gray-500 py-4 italic">Sin actividad reciente</p>';
+            }
+
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+        }
+    }
+
+    loadDashboard();
   </script>
 </body>
 </html>

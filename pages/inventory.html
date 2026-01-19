@@ -81,9 +81,9 @@
         <p id="modalSubtitle" class="text-sm text-gray-400 mb-4">Producto: -</p>
 
         <div class="flex gap-2 mb-4 border-b border-gray-700 pb-2">
-            <button type="button" onclick="toggleMode('ADJUST')" class="flex-1 py-1 text-sm font-bold text-blue-400 hover:text-blue-300 focus:outline-none">Ajustar Cantidad</button>
+            <button type="button" onclick="toggleMode('ADJUST')" class="flex-1 py-1 text-sm font-bold text-blue-400 hover:text-blue-300 focus:outline-none">Modificar Stock</button>
             <div class="w-px bg-gray-700"></div>
-            <button type="button" onclick="toggleMode('MOVE')" class="flex-1 py-1 text-sm font-bold text-green-400 hover:text-green-300 focus:outline-none">Cambiar Piso</button>
+            <button type="button" onclick="toggleMode('MOVE')" class="flex-1 py-1 text-sm font-bold text-green-400 hover:text-green-300 focus:outline-none">Trasladar Piso</button>
         </div>
 
         <form id="adjustForm" class="space-y-4">
@@ -97,7 +97,7 @@
                         <label class="cursor-pointer">
                             <input type="radio" name="tipo" value="DELTA" checked class="peer sr-only">
                             <div class="text-center py-2 rounded-lg border border-gray-600 bg-gray-800 peer-checked:bg-blue-600 peer-checked:border-blue-500 transition-all text-sm">
-                                Sumar / Restar
+                                Ingreso / Salida
                             </div>
                         </label>
                         <label class="cursor-pointer">
@@ -110,10 +110,10 @@
                 </div>
 
                 <div id="divCantidad">
-                    <label for="cantidad" class="block text-sm text-gray-400 mb-1">Cantidad</label>
-                    <input type="number" id="cantidad"
+                    <label for="cantidad" class="block text-sm text-gray-400 mb-1">Cantidad a Ingresar</label>
+                    <input type="number" id="cantidad" placeholder="0"
                         class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 text-lg font-bold">
-                    <p class="text-xs text-gray-500 mt-1">Negativo para restar (-1)</p>
+                    <p class="text-xs text-gray-400 mt-1">Usa números positivos para Repo/Ingreso. Negativos para retiro.</p>
                 </div>
             </div>
 
