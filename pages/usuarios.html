@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usuarios | Cafetería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body data-page="usuarios" class="bg-gray-900 text-white min-h-screen">
+    <div class="flex min-h-screen">
+        <div id="sidebar-slot"></div>
+        <main class="flex-1">
+            <div id="topbar-slot"></div>
+
+            <div class="p-4 max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold">Gestión de Usuarios</h1>
+                        <p class="text-gray-400 text-sm">Administra los usuarios del sistema</p>
+                    </div>
+                    <button id="btnNewUser" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+                        <span>+</span> Nuevo Usuario
+                    </button>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-gray-700/50 uppercase font-bold text-gray-400">
+                            <tr>
+                                <th class="px-6 py-3">Nombre</th>
+                                <th class="px-6 py-3">Email</th>
+                                <th class="px-6 py-3">Rol</th>
+                                <th class="px-6 py-3">Fecha Registro</th>
+                                <th class="px-6 py-3 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="divide-y divide-gray-700">
+                           <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Cargando usuarios...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Usuario -->
+    <div id="userModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-xl w-full max-w-lg border border-gray-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-gray-700 bg-gray-900 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo Usuario</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            
+            <form id="userForm" class="p-6 overflow-y-auto flex-1 space-y-4">
+                <input type="hidden" id="userId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Nombre</label>
+                    <input type="text" id="nombre" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Email *</label>
+                    <input type="email" id="email" required class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Contraseña <span id="pwdHint" class="text-gray-500">(requerida)</span></label>
+                    <input type="password" id="password" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white outline-none focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Rol *</label>
+                    <select id="rol" required class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white outline-none focus:border-blue-500">
+                        <option value="">Seleccionar rol...</option>
+                        <option value="admin">Administrador</option>
+                        <option value="vendedor">Vendedor</option>
+                    </select>
+                </div>
+            </form>
+
+            <div class="p-4 border-t border-gray-700 bg-gray-900 flex justify-end gap-2">
+                <button id="cancelModal" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300">Cancelar</button>
+                <button type="submit" form="userForm" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white font-bold shadow-lg">Guardar Usuario</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar -->
+    <div id="modalDelete" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-xl p-6 max-w-sm w-full border border-gray-700 text-center">
+            <input type="hidden" id="deleteId">
+            <h3 class="text-xl font-bold text-white mb-2">¿Eliminar Usuario?</h3>
+            <p class="text-gray-400 text-sm mb-6">Esta acción eliminará el usuario permanentemente.</p>
+            <div class="flex gap-2 justify-center">
+                <button id="btnCancelDelete" class="px-4 py-2 bg-gray-700 rounded text-white font-medium">Cancelar</button>
+                <button id="btnConfirmDelete" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded text-white font-bold">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { includeMany } from '/assets/include.js';
+        import initLayout from '/assets/js/layout.js';
+        import { apiGet, apiPost, apiPut, apiDelete } from '/assets/js/api.js';
+        import { Toast } from '/assets/js/toast.js';
+        import { requireRole } from '/assets/js/guard.js';
+
+        await includeMany([
+            { selector: '#sidebar-slot', url: '/partials/sidebar.html' },
+            { selector: '#topbar-slot', url: '/partials/topbar.html' }
+        ]);
+        await initLayout({ pageTitle: 'Usuarios' });
+
+        // Only admins can access this page
+        const profile = await requireRole(['admin']);
+        if (!profile) throw new Error('Access denied');
+
+        let allUsers = [];
+        const tableBody = document.getElementById('usersTableBody');
+        const modal = document.getElementById('userModal');
+        const form = document.getElementById('userForm');
+        const modalDelete = document.getElementById('modalDelete');
+        const pwdHint = document.getElementById('pwdHint');
+
+        async function loadUsers() {
+            try {
+                tableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Cargando...</td></tr>';
+                const data = await apiGet('usuarios');
+                allUsers = data || [];
+                renderUsers(allUsers);
+            } catch(e) {
+                console.error(e);
+                tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500">Error: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderUsers(list) {
+            if (list.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No hay usuarios registrados.</td></tr>';
+                return;
+            }
+            tableBody.innerHTML = list.map(u => {
+                const roleClass = u.rol === 'admin' ? 'bg-purple-600' : 'bg-green-600';
+                const roleLabel = u.rol === 'admin' ? 'Admin' : 'Vendedor';
+                const fecha = u.created_at ? new Date(u.created_at).toLocaleDateString() : '-';
+
+                return `
+                <tr class="hover:bg-gray-700/50 transition-colors group">
+                    <td class="px-6 py-3 font-bold text-white">${u.nombre || '-'}</td>
+                    <td class="px-6 py-3 text-gray-300">${u.email}</td>
+                    <td class="px-6 py-3"><span class="px-2 py-1 rounded text-xs font-bold ${roleClass}">${roleLabel}</span></td>
+                    <td class="px-6 py-3 text-gray-400 text-xs">${fecha}</td>
+                    <td class="px-6 py-3 text-right">
+                        <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="window.editUser('${u.id}')" class="p-2 bg-blue-900/50 text-blue-400 rounded hover:bg-blue-900 hover:text-white transition-colors" title="Editar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            </button>
+                            <button onclick="window.deleteUser('${u.id}')" class="p-2 bg-red-900/50 text-red-400 rounded hover:bg-red-900 hover:text-white transition-colors" title="Eliminar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        const openModal = (title = 'Nuevo Usuario', isEdit = false) => {
+            document.getElementById('modalTitle').textContent = title;
+            pwdHint.textContent = isEdit ? '(dejar vacío para no cambiar)' : '(requerida)';
+            document.getElementById('password').required = !isEdit;
+            modal.classList.remove('hidden');
+        };
+        
+        const closeModal = () => {
+             modal.classList.add('hidden');
+             form.reset();
+             document.getElementById('userId').value = '';
+        };
+
+        document.getElementById('btnNewUser').addEventListener('click', () => openModal());
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+        document.getElementById('cancelModal').addEventListener('click', closeModal);
+
+        window.editUser = (id) => {
+            const user = allUsers.find(u => u.id === id);
+            if (!user) return;
+            
+            document.getElementById('userId').value = user.id;
+            document.getElementById('nombre').value = user.nombre || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('rol').value = user.rol || '';
+            document.getElementById('password').value = '';
+
+            openModal('Editar Usuario', true);
+        };
+
+        window.deleteUser = (id) => {
+            document.getElementById('deleteId').value = id;
+            modalDelete.classList.remove('hidden');
+        };
+        
+        document.getElementById('btnCancelDelete').addEventListener('click', () => modalDelete.classList.add('hidden'));
+        
+        document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
+            const id = document.getElementById('deleteId').value;
+            if (!id) return;
+            try {
+                await apiDelete(`usuarios/${id}`);
+                Toast.show('Usuario eliminado', 'success');
+                modalDelete.classList.add('hidden');
+                loadUsers();
+            } catch(e) {
+                Toast.show('Error al eliminar: ' + e.message, 'error');
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            
+            const payload = {
+                nombre: document.getElementById('nombre').value,
+                email: document.getElementById('email').value,
+                rol: document.getElementById('rol').value
+            };
+
+            const password = document.getElementById('password').value;
+            if (password.trim() !== '') {
+                payload.password = password;
+            }
+
+            // Validate password for new users
+            if (!id && !payload.password) {
+                Toast.show('La contraseña es requerida para nuevos usuarios', 'error');
+                return;
+            }
+
+            try {
+                if (id) {
+                    await apiPut(`usuarios/${id}`, payload); 
+                    Toast.show('Usuario actualizado', 'success');
+                } else {
+                    await apiPost('usuarios', payload);
+                    Toast.show('Usuario creado', 'success');
+                }
+                closeModal();
+                loadUsers();
+            } catch(err) {
+                Toast.show('Error: ' + err.message, 'error');
+            }
+        });
+
+        loadUsers();
+
+    </script>
+</body>
+</html>

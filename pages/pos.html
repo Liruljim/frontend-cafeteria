@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>POS · Cafetería</title>
+  <style>
+      .autocomplete-items {
+          position: absolute;
+          border: 1px solid #374151;
+          border-bottom: none;
+          border-top: none;
+          z-index: 99;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background-color: #1f2937;
+          border-radius: 0 0 0.5rem 0.5rem;
+          max-height: 200px;
+          overflow-y: auto;
+      }
+      .autocomplete-items div {
+          padding: 10px;
+          cursor: pointer;
+          border-bottom: 1px solid #374151;
+          color: #d1d5db;
+      }
+      .autocomplete-items div:hover {
+          background-color: #374151;
+      }
+  </style>
+</head>
+
+<body data-page="pos" class="bg-gray-900 text-white min-h-screen">
+  <div class="flex h-screen overflow-hidden">
+    
+    <div class="flex-1 flex flex-col border-r border-gray-700 min-w-0">
+        
+        <h2 class="p-4 text-xl font-bold border-b border-gray-700 bg-gray-800">Productos</h2>
+
+        <div class="flex-1 overflow-y-auto p-4 bg-gray-900" id="productContainer">
+            <div class="text-center text-gray-500 mt-10">
+                <p class="text-xl">Selecciona un piso para cargar productos</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-96 flex flex-col bg-gray-800 border-l border-gray-700 shadow-xl">
+        <div class="p-4 bg-gray-800 border-b border-gray-700 spacing-y-4">
+            <div class="mb-4">
+                <label class="block text-xs text-gray-400 mb-1 font-bold uppercase tracking-wider">1. Seleccionar Piso</label>
+                <select id="selectPiso" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 focus:border-red-500 outline-none text-white">
+                    <option value="">-- Elige Piso --</option>
+                </select>
+            </div>
+
+            <div class="relative">
+                <label class="block text-xs text-gray-400 mb-1 font-bold uppercase tracking-wider">2. Cliente</label>
+                <div class="relative w-full">
+                    <input id="inputCliente" type="text" placeholder="Nombre o Cédula..." disabled
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg pl-9 pr-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none disabled:opacity-50 text-white transition-all text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-3 top-2.5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <div id="listaClientes" class="autocomplete-items hidden shadow-xl rounded-lg overflow-hidden border border-gray-600 mt-1 absolute w-full z-50"></div>
+                </div>
+                
+                <button id="btnNuevoCliente" class="hidden"></button>
+                <input type="hidden" id="selectedClienteId">
+
+                <div id="clienteSeleccionadoInfo" class="text-xs text-green-400 mt-2 hidden flex flex-col p-2 bg-green-900/20 rounded border border-green-900/50">
+                    <div class="flex items-center gap-1">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="font-bold">Cliente Seleccionado</span>
+                    </div>
+                    <div class="pl-5 mt-1">
+                        <span id="nombreClienteDisplay" class="font-bold text-white block truncate"></span>
+                        <button onclick="resetClient()" class="text-gray-400 hover:text-white underline mt-1">Cambiar Cliente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 bg-gray-900 border-b border-gray-700 flex justify-between items-center">
+            <h2 class="text-sm font-bold uppercase tracking-wider">Carrito</h2>
+            <span class="text-xs text-gray-400">Items</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-2 space-y-2" id="cartItems">
+            <div class="text-center text-gray-500 mt-10 text-sm">Carrito vacío</div>
+        </div>
+
+        <div class="p-4 bg-gray-900 border-t border-gray-700 space-y-3">
+            <div class="flex justify-between items-center text-green-400 text-xs font-mono mb-2 p-2 bg-green-900/10 rounded border border-green-900/30">
+                <span>TASA DEL DÍA:</span>
+                <span id="lblTasaDisplay" class="font-bold">Cargando...</span>
+            </div>
+
+            <div class="flex justify-between items-center text-gray-300">
+                <span>Subtotal</span>
+                <span id="lblSubtotal">$0.00</span>
+            </div>
+            <div class="flex justify-between items-center text-2xl font-bold text-white">
+                <span>Total USD</span>
+                <span id="lblTotal">$0.00</span>
+            </div>
+             <div class="flex justify-between items-center text-lg font-bold text-gray-400">
+                <span>Total Bs</span>
+                <span id="lblTotalBs">Bs 0.00</span>
+            </div>
+
+            <div class="pt-2">
+                <label class="block text-xs text-gray-400 mb-1">Método de Pago</label>
+                <select id="selectMetodoPago" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 mb-3 outline-none">
+                    <option value="EFECTIVO">Efectivo ($)</option>
+                    <option value="TARJETA">Tarjeta / Punto</option>
+                    <option value="PAGO_MOVIL">Pago Móvil</option>
+                    <option value="TRANSFERENCIA">Transferencia</option>
+                </select>
+
+                <button id="btnProcesarVenta" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    CONFIRMAR VENTA
+                </button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div id="modalNuevoCliente" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md p-6 border border-gray-700 shadow-2xl">
+        <h3 class="text-xl font-bold mb-4">Registrar Cliente</h3>
+        <form id="formNuevoCliente" class="space-y-3">
+            <div>
+                <label class="text-xs text-gray-400">Nombre</label>
+                <input id="newNombre" required class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white">
+            </div>
+             <div>
+                <label class="text-xs text-gray-400">Apellido</label>
+                <input id="newApellido" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white">
+            </div>
+            <div>
+                <label class="text-xs text-gray-400">Cédula</label>
+                <input id="newCedula" required class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white">
+            </div>
+            <div>
+                <label class="text-xs text-gray-400">Teléfono</label>
+                <input id="newTelefono" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button type="button" id="btnCancelClient" class="flex-1 bg-gray-600 hover:bg-gray-500 py-2 rounded">Cancelar</button>
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 py-2 rounded font-bold">Guardar</button>
+            </div>
+        </form>
+    </div>
+  </div>
+
+  <div id="modalConfirmarVenta" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
+      <div class="bg-gray-800 rounded-2xl w-full max-w-sm p-6 border border-gray-700 shadow-2xl text-center">
+          <div class="mb-4 text-yellow-500 flex justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+          </div>
+          <h3 class="text-xl font-bold mb-2 text-white">¿Confirmar Venta?</h3>
+          <p class="text-gray-400 mb-6 text-sm">Se procesará el cobro y se descontará del inventario.</p>
+          <div class="flex gap-3 justify-center">
+              <button id="btnCancelConfirm" class="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-medium transition-colors">Cancelar</button>
+              <button id="btnProceedConfirm" class="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 rounded-lg text-white font-bold transition-colors">Confirmar</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Modal Venta Exitosa -->
+  <div id="modalVentaExitosa" class="hidden fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div class="bg-gray-800 rounded-3xl w-full max-w-md p-8 border border-gray-700 shadow-2xl transform transition-all">
+          <div class="flex justify-center mb-6">
+              <div class="bg-green-500/10 p-4 rounded-full border-4 border-green-500/20">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                  </svg>
+              </div>
+          </div>
+          
+          <h2 class="text-3xl font-black text-center mb-1 text-white uppercase tracking-tighter">¡Venta Exitosa!</h2>
+          <p class="text-gray-400 text-center text-sm mb-8" id="successVentaId">Venta #0000</p>
+          
+          <div class="bg-gray-900/50 rounded-2xl p-6 mb-8 border border-gray-700/50">
+              <div class="space-y-4">
+                  <div class="flex justify-between items-center pb-4 border-b border-gray-700/50">
+                      <span class="text-gray-400 text-sm">Total Cobrado</span>
+                      <div class="text-right">
+                          <div class="text-2xl font-black text-white" id="successTotalUsd">$0.00</div>
+                          <div class="text-sm font-bold text-gray-400" id="successTotalBs">Bs 0.00</div>
+                      </div>
+                  </div>
+                  
+                  <div class="flex justify-between items-center">
+                      <span class="text-gray-400 text-sm">Método de Pago</span>
+                      <span class="bg-gray-700 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider" id="successMetodo">EFECTIVO</span>
+                  </div>
+              </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+               <button onclick="window.location.reload()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-xl">
+                  NUEVA VENTA
+              </button>
+              <button id="btnCloseSuccess" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-xl shadow-green-900/20">
+                  CERRAR
+              </button>
+          </div>
+      </div>
+  </div>
+
+  <script type="module">
+    import { apiGet, apiPost } from '/assets/js/api.js';
+    import { Toast } from '/assets/js/toast.js';
+    import { requireRole } from '/assets/js/guard.js';
+
+    // Ensure user is authenticated and has correct role
+    const profile = await requireRole(['admin', 'vendedor']);
+    if (!profile) throw new Error('Access denied');
+
+    let currentRate = 1;
+    let cart = [];
+    let productsList = [];
+    let currentFloorId = null;
+
+    const selectPiso = document.getElementById('selectPiso');
+    const inputCliente = document.getElementById('inputCliente');
+    const listaClientes = document.getElementById('listaClientes');
+    const selectedClienteId = document.getElementById('selectedClienteId');
+    const btnNuevoCliente = document.getElementById('btnNuevoCliente');
+    const productContainer = document.getElementById('productContainer');
+    const cartItemsDiv = document.getElementById('cartItems');
+    const lblTotal = document.getElementById('lblTotal');
+    const lblSubtotal = document.getElementById('lblSubtotal');
+    const lblTotalBs = document.getElementById('lblTotalBs');
+    const lblTasaDisplay = document.getElementById('lblTasaDisplay');
+    const btnProcesar = document.getElementById('btnProcesarVenta');
+    const modalClient = document.getElementById('modalNuevoCliente');
+    const modalSuccess = document.getElementById('modalVentaExitosa');
+    const btnCloseSuccess = document.getElementById('btnCloseSuccess');
+
+    async function loadTasa() {
+        try {
+            const data = await apiGet('api/tasa/actual');
+            if (data && data.tasa) {
+                currentRate = parseFloat(data.tasa);
+                lblTasaDisplay.textContent = `${currentRate.toFixed(2)} Bs/$`;
+            } else {
+                lblTasaDisplay.textContent = 'NO DEFINIDA (1.00)';
+            }
+        } catch(e) {
+            console.error(e);
+            lblTasaDisplay.textContent = 'Error';
+        }
+    }
+
+    async function loadPisos() {
+        try {
+            selectPiso.innerHTML = '<option value="">-- Elige Piso --</option>';
+            
+            const pisos = await apiGet('api/pisos');
+            if (Array.isArray(pisos)) {
+                pisos.forEach(p => {
+                    selectPiso.add(new Option(p.nombre, p.id));
+                });
+            }
+        } catch(e) { 
+            console.error('Error loading floors', e); 
+            Toast.show('Error cargando pisos', 'error');
+        }
+    }
+    
+    // ... (Keep existing Event Listeners for Piso, Client) ... 
+    // BUT we need to replace the entire block of code if we can't context match easily.
+    // I will use context matching carefully.
+    
+    // ... 
+
+    function renderCart() {
+        if (cart.length === 0) {
+            cartItemsDiv.innerHTML = '<div class="text-center text-gray-500 mt-10 text-sm">Carrito vacío</div>';
+            lblSubtotal.textContent = '$0.00';
+            lblTotal.textContent = '$0.00';
+            lblTotalBs.textContent = 'Bs 0.00';
+            return;
+        }
+
+        let total = 0;
+        cartItemsDiv.innerHTML = cart.map(item => {
+            const sub = item.qty * item.precio;
+            total += sub;
+            return `
+                <div class="flex justify-between items-center bg-gray-700 p-2 rounded-lg text-sm">
+                    <div class="flex-1">
+                        <div class="font-bold truncate">${item.nombre}</div>
+                        <div class="text-xs text-gray-400">$${item.precio} x ${item.qty}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.changeQty('${item.id}', -1)" class="w-6 h-6 bg-gray-600 rounded hover:bg-gray-500">-</button>
+                        <span class="font-mono w-4 text-center">${item.qty}</span>
+                        <button onclick="window.changeQty('${item.id}', 1)" class="w-6 h-6 bg-gray-600 rounded hover:bg-gray-500">+</button>
+                        <button onclick="window.removeFromCart('${item.id}')" class="text-red-400 ml-2 hover:text-red-300">✕</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        lblSubtotal.textContent = '$' + total.toFixed(2);
+        lblTotal.textContent = '$' + total.toFixed(2);
+        
+        // Calculate Bs
+        const totalBs = total * currentRate;
+        lblTotalBs.textContent = 'Bs ' + totalBs.toFixed(2);
+    }
+    // ...
+    
+    console.log('INIT POS: Starting...');
+    
+    loadTasa().then(() => console.log('Tasa loaded')).catch(e => console.error('Tasa failed', e));
+    loadPisos().then(() => console.log('Pisos loaded')).catch(e => console.error('Pisos failed', e));
+    
+    selectPiso.addEventListener('change', async (e) => {
+        currentFloorId = e.target.value;
+        if (!currentFloorId) {
+            inputCliente.disabled = true;
+            productContainer.innerHTML = '<div class="text-center text-gray-500 mt-10"><p class="text-xl">👈 Selecciona un piso</p></div>';
+            return;
+        }
+
+        inputCliente.disabled = false;
+        inputCliente.focus();
+        
+        loadProductsForFloor(currentFloorId);
+    });
+
+    async function loadProductsForFloor(pisoId) {
+        productContainer.innerHTML = '<div class="text-center text-gray-400 mt-10">Cargando productos...</div>';
+        try {
+            productsList = await apiGet('api/pos/productos', { piso_id: pisoId });
+            renderProducts();
+        } catch(e) {
+            console.error('Error loading products:', e);
+            productContainer.innerHTML = `<div class="text-center text-red-400 mt-10">Error: ${e.error || e.message || 'Error desconocido'}</div>`;
+        }
+    }
+
+    function renderProducts() {
+        if (productsList.length === 0) {
+            productContainer.innerHTML = '<div class="text-center text-gray-500 mt-10">No hay productos con stock en este piso.</div>';
+            return;
+        }
+
+        productContainer.innerHTML = '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">' + 
+            productsList.map(prod => `
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 hover:border-red-500 cursor-pointer transition-colors flex flex-col justify-between h-full"
+                    onclick="window.addToCart('${prod.id}')">
+                    <div>
+                         <div class="flex justify-between items-start">
+                            <span class="text-xs py-1 px-2 rounded bg-gray-700 text-gray-300 mb-2 inline-block">${prod.categoria || 'Gral'}</span>
+                            <span class="text-xs font-bold ${prod.stock < 5 ? 'text-red-500' : 'text-green-500'}">Stock: ${prod.stock}</span>
+                        </div>
+                        <h4 class="font-bold text-lg leading-tight mb-1">${prod.nombre}</h4>
+                        <p class="text-gray-400 text-xs mb-2">${prod.sku || ''}</p>
+                    </div>
+                    <div class="font-extrabold text-xl text-red-500">$${prod.precio}</div>
+                </div>
+            `).join('') + 
+        '</div>';
+    }
+
+    let debounceTimer;
+    inputCliente.addEventListener('input', (e) => {
+        const q = e.target.value;
+        clearTimeout(debounceTimer);
+        if (q.length < 2) {
+            listaClientes.classList.add('hidden');
+            return;
+        }
+        debounceTimer = setTimeout(() => searchClients(q), 300);
+    });
+
+    async function searchClients(q) {
+        try {
+            listaClientes.innerHTML = '<div class="p-3 text-gray-400 text-sm">Buscando...</div>';
+            listaClientes.classList.remove('hidden');
+
+            const clientes = await apiGet('clientes/buscar', { q });
+            listaClientes.innerHTML = '';
+            
+            if (clientes.length === 0) {
+                 // Dynamic "Not Found / Create" option
+                 const div = document.createElement('div');
+                 div.className = 'p-3 flex items-center justify-between hover:bg-gray-700 text-blue-300 group transition-colors border-l-4 border-blue-500';
+                 div.innerHTML = `
+                    <span>No encontrado "${q}"</span>
+                    <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded group-hover:bg-blue-500 font-bold">+ REGISTRAR NUEVO</span>
+                 `;
+                 div.onclick = () => {
+                     // Pre-fill modal with what was typed if it looks like a cedula or name?
+                     // Simple open for now
+                     modalClient.classList.remove('hidden');
+                     listaClientes.classList.add('hidden');
+                 };
+                 listaClientes.appendChild(div);
+            } else {
+                clientes.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'p-3 hover:bg-gray-700 border-b border-gray-800 last:border-0 transition-colors';
+                    div.innerHTML = `<span class="font-bold text-white">${c.nombre} ${c.apellido || ''}</span> <span class="text-sm text-gray-400 block">C.I: ${c.cedula}</span>`;
+                    div.onclick = () => selectClient(c);
+                    listaClientes.appendChild(div);
+                });
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    window.resetClient = () => {
+        selectedClienteId.value = '';
+        inputCliente.value = '';
+        inputCliente.disabled = false;
+        inputCliente.focus();
+        document.getElementById('clienteSeleccionadoInfo').classList.add('hidden');
+        inputCliente.classList.remove('border-green-500');
+    }
+
+    function selectClient(client) {
+        selectedClienteId.value = client.id;
+        inputCliente.value = `${client.nombre} ${client.apellido || ''}`;
+        listaClientes.classList.add('hidden');
+        document.getElementById('clienteSeleccionadoInfo').classList.remove('hidden');
+        document.getElementById('nombreClienteDisplay').textContent = client.nombre;
+        inputCliente.classList.add('border-green-500');
+    }
+
+    // 4. Cart Logic
+    window.addToCart = (prodId) => {
+        const prod = productsList.find(p => p.id === prodId);
+        if (!prod) return;
+
+        // Check stock
+        const existing = cart.find(item => item.id === prodId);
+        const currentQty = existing ? existing.qty : 0;
+        
+        if (currentQty + 1 > prod.stock) {
+            Toast.show('No hay suficiente stock disponible en este piso.', 'warning');
+            return;
+        }
+
+        if (existing) {
+            existing.qty++;
+        } else {
+            cart.push({ ...prod, qty: 1 });
+        }
+        renderCart();
+    };
+
+    window.removeFromCart = (prodId) => {
+        cart = cart.filter(item => item.id !== prodId);
+        renderCart();
+    };
+
+    window.changeQty = (prodId, delta) => {
+        const item = cart.find(i => i.id === prodId);
+        if (!item) return;
+        
+        const newQty = item.qty + delta;
+        if (newQty <= 0) {
+            removeFromCart(prodId);
+            return;
+        }
+
+        // Validate stock again
+        const prod = productsList.find(p => p.id === prodId);
+        if (newQty > prod.stock) {
+            Toast.show('Stock insuficiente.', 'warning');
+            return;
+        }
+
+        item.qty = newQty;
+        renderCart();
+    };
+
+
+
+    btnNuevoCliente.addEventListener('click', () => modalClient.classList.remove('hidden'));
+    document.getElementById('btnCancelClient').addEventListener('click', () => modalClient.classList.add('hidden'));
+
+    document.getElementById('formNuevoCliente').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            nombre: document.getElementById('newNombre').value,
+            apellido: document.getElementById('newApellido').value,
+            cedula: document.getElementById('newCedula').value,
+            telefono: document.getElementById('newTelefono').value,
+            nac: 'V',
+            area_number: '0414' 
+        };
+
+        try {
+            const res = await apiPost('clientes', data); 
+            const newClient = res.cliente; 
+            selectClient(newClient);
+            modalClient.classList.add('hidden');
+            Toast.show('Cliente creado y seleccionado', 'success');
+        } catch(err) {
+            Toast.show('Error al crear cliente: ' + (err.message || 'Error desconocido'), 'error');
+        }
+    });
+
+    const modalConfirm = document.getElementById('modalConfirmarVenta');
+    const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+    const btnProceedConfirm = document.getElementById('btnProceedConfirm');
+
+    btnProcesar.addEventListener('click', () => {
+        if (!selectedClienteId.value) { Toast.show('Debes seleccionar un cliente', 'warning'); return; }
+        if (!currentFloorId) { Toast.show('Debes seleccionar un piso', 'warning'); return; }
+        if (cart.length === 0) { Toast.show('El carrito está vacío', 'warning'); return; }
+        
+        modalConfirm.classList.remove('hidden');
+    });
+
+    btnCancelConfirm.addEventListener('click', () => {
+        modalConfirm.classList.add('hidden');
+    });
+
+    btnProceedConfirm.addEventListener('click', async () => {
+        modalConfirm.classList.add('hidden');
+        await processSale();
+    });
+
+    async function processSale() {
+        const payload = {
+            cliente_id: selectedClienteId.value,
+            piso_id: currentFloorId,
+            metodo_pago: document.getElementById('selectMetodoPago').value,
+            total: parseFloat(lblTotal.textContent.replace('$','')),
+            items: cart.map(i => ({
+                producto_id: i.id,
+                cantidad: i.qty,
+                precio_unitario: i.precio
+            }))
+        };
+
+        try {
+            btnProcesar.disabled = true;
+            btnProcesar.textContent = 'Procesando...';
+            
+            const res = await apiPost('api/pos/ventas', payload);
+            
+            // Llenar datos de éxito
+            document.getElementById('successVentaId').textContent = `Venta #${res.venta_id || '---'}`;
+            document.getElementById('successTotalUsd').textContent = `$${payload.total.toFixed(2)}`;
+            document.getElementById('successTotalBs').textContent = `Bs ${(payload.total * currentRate).toFixed(2)}`;
+            document.getElementById('successMetodo').textContent = payload.metodo_pago;
+            
+            // Mostrar modal de éxito
+            modalSuccess.classList.remove('hidden');
+            
+            // Reset
+            cart = [];
+            renderCart();
+            // Reset client selection
+            window.resetClient();
+            loadProductsForFloor(currentFloorId);
+
+        } catch(err) {
+            Toast.show('❌ Error al procesar venta: ' + err.message, 'error');
+        } finally {
+            btnProcesar.disabled = false;
+            btnProcesar.textContent = 'CONFIRMAR VENTA';
+        }
+    }
+
+    btnCloseSuccess.addEventListener('click', () => {
+        modalSuccess.classList.add('hidden');
+    });
+
+    // Init
+
+
+  </script>
+</body>
+</html>

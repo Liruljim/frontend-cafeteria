@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reportes | Cafetería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body data-page="reports" class="bg-gray-900 text-white min-h-screen">
+    <div class="flex min-h-screen">
+        <div id="sidebar-slot"></div>
+        <main class="flex-1 overflow-x-hidden">
+            <div id="topbar-slot"></div>
+
+            <div class="p-6 max-w-[1600px] mx-auto">
+                <h1 class="text-3xl font-bold mb-6">Reporte de Ventas</h1>
+
+                <!-- Filters -->
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-6 flex flex-wrap gap-4 items-end">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Desde</label>
+                        <input type="date" id="dateFrom" class="bg-gray-700 border border-gray-600 rounded p-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Hasta</label>
+                        <input type="date" id="dateTo" class="bg-gray-700 border border-gray-600 rounded p-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Cliente (Nombre/Cédula)</label>
+                        <input type="text" id="filterClient" placeholder="Todos" class="bg-gray-700 border border-gray-600 rounded p-2 text-white w-48">
+                    </div>
+                     <div>
+                        <label class="block text-xs text-gray-400 mb-1">Piso</label>
+                        <select id="filterPiso" class="bg-gray-700 border border-gray-600 rounded p-2 text-white w-40">
+                             <option value="">Todos</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label class="block text-xs text-gray-400 mb-1">Método</label>
+                        <select id="filterMetodo" class="bg-gray-700 border border-gray-600 rounded p-2 text-white w-40">
+                             <option value="">Todos</option>
+                             <option value="EFECTIVO">Efectivo</option>
+                             <option value="TARJETA">Tarjeta</option>
+                             <option value="PAGO_MOVIL">Pago Móvil</option>
+                             <option value="TRANSFERENCIA">Transferencia</option>
+                        </select>
+                    </div>
+                    <button id="btnFilter" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2 rounded shadow-lg transition-transform active:scale-95">
+                        FILTRAR
+                    </button>
+                    <button id="btnReset" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded">
+                        Limpiar
+                    </button>
+                </div>
+
+                <!-- Totals Card -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                        <div class="text-gray-400 text-xs uppercase font-bold">Ventas Totales</div>
+                        <div class="text-3xl font-bold text-white" id="statCount">0</div>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                         <div class="text-gray-400 text-xs uppercase font-bold">Total USD</div>
+                        <div class="text-3xl font-bold text-green-400" id="statTotalUSD">$0.00</div>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                         <div class="text-gray-400 text-xs uppercase font-bold">Total Bs (Ref)</div>
+                        <div class="text-3xl font-bold text-blue-400" id="statTotalBs">Bs 0.00</div>
+                        <div class="text-xs text-gray-500">*Calculado con tasa de fecha de venta</div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-x-auto shadow-lg">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-gray-700/50 uppercase font-bold text-gray-400 whitespace-nowrap">
+                            <tr>
+                                <th class="px-6 py-3">Fecha</th>
+                                <th class="px-6 py-3">ID Venta</th>
+                                <th class="px-6 py-3">Cliente</th>
+                                <th class="px-6 py-3">Piso</th>
+                                <th class="px-6 py-3">Método</th>
+                                <th class="px-6 py-3 text-right">Tasa</th>
+                                <th class="px-6 py-3 text-right text-green-400">Total USD</th>
+                                <th class="px-6 py-3 text-right text-blue-400">Total Bs</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody" class="divide-y divide-gray-700">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { includeMany } from '/assets/include.js';
+        import initLayout from '/assets/js/layout.js';
+        import { apiGet } from '/assets/js/api.js';
+        import { requireRole } from '/assets/js/guard.js';
+
+        await includeMany([
+            { selector: '#sidebar-slot', url: '/partials/sidebar.html' },
+            { selector: '#topbar-slot', url: '/partials/topbar.html' }
+        ]);
+        await initLayout({ pageTitle: 'Reportes' });
+
+        // Admin only page
+        await requireRole(['admin']);
+
+        // Elements
+        const btnFilter = document.getElementById('btnFilter');
+        const btnReset = document.getElementById('btnReset');
+        const tableBody = document.getElementById('reportTableBody');
+        const selectPiso = document.getElementById('filterPiso');
+        
+        // Initial Data Loading
+        async function loadPisos() {
+            try {
+                const pisos = await apiGet('api/pisos');
+                pisos.forEach(p => selectPiso.add(new Option(p.nombre, p.id)));
+            } catch(e) {}
+        }
+
+        async function loadReport() {
+            tableBody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center">Cargando datos...</td></tr>';
+            
+            const params = new URLSearchParams();
+            const df = document.getElementById('dateFrom').value;
+            const dt = document.getElementById('dateTo').value;
+            const client = document.getElementById('filterClient').value;
+            const piso = document.getElementById('filterPiso').value;
+            const metodo = document.getElementById('filterMetodo').value;
+
+            if (df) params.append('desde', df);
+            if (dt) params.append('hasta', dt);
+            if (client) params.append('cliente', client);
+            if (piso) params.append('piso', piso);
+            if (metodo) params.append('metodo', metodo);
+
+            try {
+                const data = await apiGet(`api/reportes/ventas?${params.toString()}`);
+                renderTable(data);
+                calcTotals(data);
+            } catch(e) {
+                console.error(e);
+                tableBody.innerHTML = `<tr><td colspan="8" class="px-6 py-8 text-center text-red-500">Error: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderTable(data) {
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500">No se encontraron ventas.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = data.map(v => `
+                <tr class="hover:bg-gray-700/50 transition-colors">
+                    <td class="px-6 py-3 whitespace-nowrap text-gray-400">${new Date(v.created_at || v.fecha_venta).toLocaleString()}</td>
+                    <td class="px-6 py-3 font-mono text-xs text-gray-500">${v.id.split('-')[0]}...</td>
+                    <td class="px-6 py-3 font-bold text-white">
+                        ${v.clientes ? `${v.clientes.nombre} ${v.clientes.apellido || ''}` : 'S/N'}
+                        <div class="text-xs text-gray-500 font-normal">${v.clientes?.cedula || ''}</div>
+                    </td>
+                    <td class="px-6 py-3 text-gray-300 text-xs">${v.pisos?.nombre || '-'}</td>
+                    <td class="px-6 py-3">
+                        <span class="bg-gray-700 px-2 py-1 rounded text-xs">${v.metodo_pago}</span>
+                    </td>
+                    <td class="px-6 py-3 text-right font-mono text-xs">${v.tasa_cambio}</td>
+                    <td class="px-6 py-3 text-right font-bold text-green-400">$${parseFloat(v.total_usd || v.total || 0).toFixed(2)}</td>
+                    <td class="px-6 py-3 text-right font-bold text-blue-400">Bs ${parseFloat(v.total_bs || 0).toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function calcTotals(data) {
+             const totalUSD = data.reduce((acc, curr) => acc + parseFloat(curr.total_usd || curr.total || 0), 0);
+             const totalBs = data.reduce((acc, curr) => acc + parseFloat(curr.total_bs || 0), 0);
+             
+             document.getElementById('statCount').textContent = data.length;
+             document.getElementById('statTotalUSD').textContent = '$' + totalUSD.toFixed(2);
+             document.getElementById('statTotalBs').textContent = 'Bs ' + totalBs.toFixed(2);
+        }
+
+        btnFilter.addEventListener('click', loadReport);
+        btnReset.addEventListener('click', () => {
+             document.getElementById('dateFrom').value = '';
+             document.getElementById('dateTo').value = '';
+             document.getElementById('filterClient').value = '';
+             document.getElementById('filterPiso').value = '';
+             document.getElementById('filterMetodo').value = '';
+             loadReport();
+        });
+
+        // Init
+        loadPisos();
+        loadReport();
+
+    </script>
+</body>
+</html>

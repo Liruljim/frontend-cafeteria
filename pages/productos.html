@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Productos · Cafetería</title>
+</head>
+
+<body data-page="products" class="bg-gray-900 text-white min-h-screen">
+  <div class="flex min-h-screen">
+    <!-- Sidebar slot -->
+    <div id="sidebar-slot"></div>
+
+    <main class="flex-1">
+      <!-- Topbar slot -->
+      <div id="topbar-slot"></div>
+
+      <!-- Content -->
+      <div class="p-4 max-w-5xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold">Gestión de Productos</h2>
+                <p class="text-gray-400 text-sm">Administra el catálogo y precios</p>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 text-gray-200">Nuevo / Editar Producto</h3>
+            <form id="productForm" class="space-y-4">
+                <input type="hidden" id="productId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="nombre" class="block text-sm text-gray-400 mb-1">Nombre</label>
+                        <input type="text" id="nombre" required 
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 transition-colors"
+                            placeholder="Ej. Café Americano">
+                    </div>
+                    <div>
+                        <label for="sku" class="block text-sm text-gray-400 mb-1">SKU</label>
+                        <input type="text" id="sku" required 
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 transition-colors"
+                            placeholder="Ej. CAFE-001">
+                    </div>
+                    <div>
+                        <label for="category_id" class="block text-sm text-gray-400 mb-1">Categoría</label>
+                        <select id="category_id" required 
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 transition-colors">
+                            <option value="">Seleccione una categoría</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="proveedor_id" class="block text-sm text-gray-400 mb-1">Proveedor (de esa categoría)</label>
+                        <select id="proveedor_id" required disabled
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 transition-colors disabled:opacity-50">
+                            <option value="">Seleccione categoría primero</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="precio" class="block text-sm text-gray-400 mb-1">Precio</label>
+                        <input type="number" id="precio" step="0.01" required 
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 transition-colors">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" id="saveBtn" class="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-medium transition-colors">
+                        Guardar
+                    </button>
+                    <button type="button" id="cancelBtn" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-medium transition-colors hidden">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+            <div id="message" class="mt-4 hidden p-3 rounded-lg text-sm"></div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-lg">
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-200">Listado de Productos</h3>
+                <button onclick="loadProducts()" class="text-sm text-red-400 hover:text-red-300">Refrescar</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-400 uppercase bg-gray-900/50">
+                        <tr>
+                            <th class="px-6 py-3">Nombre</th>
+                            <th class="px-6 py-3">SKU</th>
+                            <th class="px-6 py-3">Categoría</th>
+                            <th class="px-6 py-3">Proveedor</th>
+                            <th class="px-6 py-3">Precio</th>
+                            <th class="px-6 py-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody" class="divide-y divide-gray-700">
+                        <!-- Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { includeMany } from '/assets/include.js';
+    import initLayout from '/assets/js/layout.js';
+    import { apiGet, apiPost, apiPut, apiDelete } from '/assets/js/api.js';
+    import { requireRole } from '/assets/js/guard.js';
+
+    await includeMany([
+      { selector: '#sidebar-slot', url: '/partials/sidebar.html' },
+      { selector: '#topbar-slot', url: '/partials/topbar.html' }
+    ]);
+    await initLayout({ pageTitle: 'Productos' });
+
+    // Admin only page
+    await requireRole(['admin']);
+
+    // Logic
+    const form = document.getElementById('productForm');
+    const tableBody = document.getElementById('productTableBody');
+    const messageDiv = document.getElementById('message');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const categorySelect = document.getElementById('category_id');
+    const providerSelect = document.getElementById('proveedor_id');
+    
+    let isEditing = false;
+    let editId = null;
+
+    const showMessage = (msg, type = 'success') => {
+        messageDiv.textContent = msg;
+        messageDiv.className = `mt-4 p-3 rounded-lg text-sm ${type === 'error' ? 'bg-red-900/50 text-red-200 border border-red-800' : 'bg-green-900/50 text-green-200 border border-green-800'} block`;
+        setTimeout(() => messageDiv.classList.add('hidden'), 3000);
+    };
+
+    window.loadCategories = async () => {
+        try {
+            const categories = await apiGet('api/categorias');
+            categories.forEach(cat => {
+                categorySelect.add(new Option(cat.nombre, cat.id));
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    window.loadProviders = async (categoryId) => {
+        providerSelect.innerHTML = '<option value="">Seleccione un proveedor</option>';
+        if (!categoryId) {
+            providerSelect.disabled = true;
+            return;
+        }
+        try {
+            providerSelect.disabled = false;
+            const providers = await apiGet('api/proveedores', { category_id: categoryId });
+            providers.forEach(prov => {
+                providerSelect.add(new Option(prov.nombre, prov.id));
+            });
+        } catch (error) {
+            console.error(error);
+            providerSelect.innerHTML = '<option value="">Error al cargar</option>';
+        }
+    };
+
+    window.loadProducts = async () => {
+        try {
+            tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
+            const products = await apiGet('api/productos');
+            tableBody.innerHTML = '';
+            
+            if (products.length === 0) {
+                 tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No hay productos registrados</td></tr>';
+                 return;
+            }
+
+            products.forEach(prod => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-700/50 transition-colors';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium">${prod.nombre}</td>
+                    <td class="px-6 py-4 text-gray-400">${prod.sku || '-'}</td>
+                    <td class="px-6 py-4 text-gray-400">${prod.categorias ? prod.categorias.nombre : 'N/A'}</td>
+                    <td class="px-6 py-4 text-gray-400">${prod.proveedores ? prod.proveedores.nombre : 'N/A'}</td>
+                    <td class="px-6 py-4 font-bold text-green-400">$${prod.precio}</td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button class="text-blue-400 hover:text-blue-300 transition-colors p-1" title="Editar" onclick='window.editProduct("${prod.id}", "${prod.nombre}", "${prod.sku || ''}", "${prod.category_id}", "${prod.proveedor_id}", "${prod.precio}")'>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                            </svg>
+                        </button>
+                        <button class="text-red-400 hover:text-red-300 transition-colors p-1" title="Eliminar" onclick='window.deleteProduct("${prod.id}")'>
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        } catch (error) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-400">Error: ${error.message}</td></tr>`;
+        }
+    };
+
+    categorySelect.addEventListener('change', (e) => {
+        loadProviders(e.target.value);
+    });
+
+    window.editProduct = async (id, nombre, sku, catId, provId, precio) => {
+        isEditing = true;
+        editId = id;
+        document.getElementById('productId').value = id;
+        document.getElementById('nombre').value = nombre;
+        document.getElementById('sku').value = sku;
+        document.getElementById('precio').value = precio;
+        document.getElementById('category_id').value = catId;
+        await loadProviders(catId);
+        document.getElementById('proveedor_id').value = provId;
+
+        saveBtn.textContent = 'Actualizar';
+        cancelBtn.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.deleteProduct = async (id) => {
+        if (!confirm('¿Eliminar producto?')) return;
+        try {
+            await apiDelete(`api/productos/${id}`);
+            showMessage('Producto eliminado');
+            loadProducts();
+        } catch (error) {
+            showMessage(error.message, 'error');
+        }
+    };
+
+    cancelBtn.addEventListener('click', () => {
+        isEditing = false;
+        editId = null;
+        form.reset();
+        saveBtn.textContent = 'Guardar';
+        cancelBtn.classList.add('hidden');
+        providerSelect.innerHTML = '<option value="">Seleccione categoría primero</option>';
+        providerSelect.disabled = true;
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        saveBtn.disabled = true;
+        const data = {
+            nombre: document.getElementById('nombre').value,
+            sku: document.getElementById('sku').value,
+            category_id: document.getElementById('category_id').value,
+            proveedor_id: document.getElementById('proveedor_id').value,
+            precio: parseFloat(document.getElementById('precio').value)
+        };
+
+        try {
+            if (isEditing) {
+                await apiPut(`api/productos/${editId}`, data);
+                showMessage('Producto actualizado');
+            } else {
+                await apiPost('api/productos', data);
+                showMessage('Producto creado');
+            }
+            form.reset();
+            isEditing = false;
+            editId = null;
+            saveBtn.textContent = 'Guardar';
+            providerSelect.innerHTML = '<option value="">Seleccione categoría primero</option>';
+            providerSelect.disabled = true;
+            cancelBtn.classList.add('hidden');
+            loadProducts();
+        } catch (error) {
+            showMessage(error.message, 'error');
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+
+    await loadCategories();
+    loadProducts();
+  </script>
+</body>
+</html>

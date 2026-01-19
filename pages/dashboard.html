@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Dashboard · Cafetería</title>
+</head>
+
+<body data-page="dashboard" class="bg-gray-900 text-white min-h-screen">
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar slot -->
+    <div id="sidebar-slot"></div>
+
+    <main class="flex-1">
+      <!-- Topbar slot -->
+      <div id="topbar-slot"></div>
+
+      <!-- Content -->
+      <div class="p-4 max-w-7xl mx-auto space-y-6">
+
+        <!-- KPI cards -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="text-sm text-gray-400">Ventas hoy</div>
+            <div class="mt-2 text-3xl font-extrabold">$ 1,245.50</div>
+            <div class="mt-1 text-xs text-green-400">+12% vs ayer</div>
+          </div>
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="text-sm text-gray-400">Créditos hoy</div>
+            <div class="mt-2 text-3xl font-extrabold">$ 320.00</div>
+            <div class="mt-1 text-xs text-yellow-400">8 ventas a crédito</div>
+          </div>
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="text-sm text-gray-400">Pagos pendientes</div>
+            <div class="mt-2 text-3xl font-extrabold">5</div>
+            <div class="mt-1 text-xs text-red-400">Requieren validación</div>
+          </div>
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="text-sm text-gray-400">Stock bajo</div>
+            <div class="mt-2 text-3xl font-extrabold">12</div>
+            <div class="mt-1 text-xs text-gray-400">Productos críticos</div>
+          </div>
+        </div>
+
+        <!-- Panels -->
+        <div class="grid lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-semibold">Actividad reciente</h2>
+                <p class="text-sm text-gray-400">Últimos movimientos del sistema</p>
+              </div>
+              <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">Ver todo</button>
+            </div>
+
+            <div class="mt-4 space-y-3">
+              <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold">Pago reportado · Juan Pérez</div>
+                  <span class="text-xs px-2 py-1 rounded bg-yellow-600">pending</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">VES 1,200.00 · Ref: 000123 · hace 10 min</div>
+              </div>
+
+              <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold">Venta confirmada · Piso 2</div>
+                  <span class="text-xs px-2 py-1 rounded bg-green-600">confirmed</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">$ 18.50 · efectivo · hace 18 min</div>
+              </div>
+
+              <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold">Tasa actualizada</div>
+                  <span class="text-xs px-2 py-1 rounded bg-gray-700">rate</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-1">EUR→VES 42.123456 · EUR→USD 1.080000 · hoy</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <h2 class="text-lg font-semibold">Acciones rápidas</h2>
+            <p class="text-sm text-gray-400">Atajos frecuentes</p>
+            <div class="mt-4 space-y-2">
+              <a href="/pages/rates.html" class="block px-4 py-3 w-full rounded-xl bg-gray-700 hover:bg-gray-600 text-left">
+                💱 Cargar tasa del día
+              </a>
+              <a href="/pages/payments.html" class="block px-4 py-3 w-full rounded-xl bg-gray-700 hover:bg-gray-600 text-left">
+                ✅ Validar pagos pendientes
+              </a>
+              <a href="/pages/inventory.html" class="block px-4 py-3 w-full rounded-xl bg-gray-700 hover:bg-gray-600 text-left">
+                📦 Ver stock por piso
+              </a>
+              <a href="/pages/customers.html" class="block px-4 py-3 w-full rounded-xl bg-gray-700 hover:bg-gray-600 text-left">
+                👤 Administrar clientes fijos
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- JS: load partials and initialize layout -->
+  <script type="module">
+    import { includeMany } from '/assets/include.js';
+    import initLayout from '/assets/js/layout.js';
+    import { requireRole } from '/assets/js/guard.js';
+
+    await includeMany([
+      { selector: '#sidebar-slot', url: '/partials/sidebar.html' },
+      { selector: '#topbar-slot', url: '/partials/topbar.html' }
+    ]);
+
+    await initLayout({ pageTitle: 'Dashboard' });
+
+    // Only admins can access dashboard
+    await requireRole(['admin']);
+  </script>
+</body>
+</html>

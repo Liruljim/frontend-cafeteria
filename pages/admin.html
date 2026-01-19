@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Cafetería</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="flex min-h-screen">
+
+    <div id="sidebar-slot"></div>
+
+    <main class="flex-1">
+      <div id="topbar-slot"></div>
+
+      <!-- Content container -->
+      <div class="p-4 max-w-7xl mx-auto space-y-6">
+
+        <!-- DASHBOARD -->
+        <section id="view-dashboard" class="view space-y-6">
+          <!-- KPI cards -->
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <div class="text-sm text-gray-400">Ventas hoy</div>
+              <div class="mt-2 text-3xl font-extrabold">$ 1,245.50</div>
+              <div class="mt-1 text-xs text-green-400">+12% vs ayer</div>
+            </div>
+            <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <div class="text-sm text-gray-400">Créditos hoy</div>
+              <div class="mt-2 text-3xl font-extrabold">$ 320.00</div>
+              <div class="mt-1 text-xs text-yellow-400">8 ventas a crédito</div>
+            </div>
+            <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <div class="text-sm text-gray-400">Pagos pendientes</div>
+              <div class="mt-2 text-3xl font-extrabold">5</div>
+              <div class="mt-1 text-xs text-red-400">Requieren validación</div>
+            </div>
+            <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <div class="text-sm text-gray-400">Stock bajo</div>
+              <div class="mt-2 text-3xl font-extrabold">12</div>
+              <div class="mt-1 text-xs text-gray-400">Productos críticos</div>
+            </div>
+          </div>
+
+          <!-- Quick actions + panels -->
+          <div class="grid lg:grid-cols-3 gap-4">
+            <div class="lg:col-span-2 bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold">Actividad reciente</h2>
+                  <p class="text-sm text-gray-400">Últimos movimientos del sistema</p>
+                </div>
+                <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">Ver todo</button>
+              </div>
+
+              <div class="mt-4 space-y-3">
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">Pago reportado · Juan Pérez</div>
+                    <span class="text-xs px-2 py-1 rounded bg-yellow-600">pending</span>
+                  </div>
+                  <div class="text-xs text-gray-400 mt-1">VES 1,200.00 · Ref: 000123 · hace 10 min</div>
+                </div>
+
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">Venta confirmada · Piso 2</div>
+                    <span class="text-xs px-2 py-1 rounded bg-green-600">confirmed</span>
+                  </div>
+                  <div class="text-xs text-gray-400 mt-1">$ 18.50 · efectivo · hace 18 min</div>
+                </div>
+
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">Tasa actualizada</div>
+                    <span class="text-xs px-2 py-1 rounded bg-gray-700">rate</span>
+                  </div>
+                  <div class="text-xs text-gray-400 mt-1">EUR→VES 42.123456 · EUR→USD 1.080000 · hoy</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <h2 class="text-lg font-semibold">Acciones rápidas</h2>
+              <p class="text-sm text-gray-400">Atajos frecuentes</p>
+              <div class="mt-4 space-y-2">
+                <button data-view="rates"
+                  class="quick px-4 py-3 w-full rounded-xl bg-gray-700 hover:bg-gray-600 text-left">
+                  💱 Cargar tasa del día
+                </button>
+                <button data-view="payments"
+                  class="quick px-4 py-3 w-full rounded-xl bg-gray-700 hover:bg-gray-600 text-left">
+                  ✅ Validar pagos pendientes
+                </button>
+                <button data-view="inventory"
+                  class="quick px-4 py-3 w-full rounded-xl bg-gray-700 hover:bg-gray-600 text-left">
+                  📦 Ver stock por piso
+                </button>
+                <button data-view="customers"
+                  class="quick px-4 py-3 w-full rounded-xl bg-gray-700 hover:bg-gray-600 text-left">
+                  👤 Administrar clientes fijos
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RATES -->
+        <section id="view-rates" class="view hidden space-y-6">
+          <div class="grid lg:grid-cols-3 gap-4">
+            <!-- Form -->
+            <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold">Tasa del día</h2>
+                  <p class="text-sm text-gray-400">Basada en EUR (auditable)</p>
+                </div>
+                <span class="text-xs px-2 py-1 rounded bg-gray-700">Última: hoy</span>
+              </div>
+
+              <form class="mt-4 space-y-3">
+                <div>
+                  <label class="block text-sm text-gray-300 mb-1">Fecha</label>
+                  <input type="date" class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-300 mb-1">1 EUR → VES</label>
+                  <input inputmode="decimal" placeholder="42.123456"
+                    class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-300 mb-1">1 EUR → USD</label>
+                  <input inputmode="decimal" placeholder="1.080000"
+                    class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" />
+                </div>
+                <button type="button" class="w-full py-3 rounded-lg bg-red-600 hover:bg-red-700 font-semibold">
+                  Guardar tasa
+                </button>
+                <p class="text-xs text-gray-400">* Visual únicamente. Luego se conecta a Supabase.</p>
+              </form>
+            </div>
+
+            <!-- Rate preview -->
+            <div class="lg:col-span-2 bg-gray-800 rounded-2xl p-4 border border-gray-700">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold">Historial de tasas</h2>
+                  <p class="text-sm text-gray-400">Últimos días cargados</p>
+                </div>
+                <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">Exportar</button>
+              </div>
+
+              <div class="mt-4 overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead class="text-gray-300">
+                    <tr class="border-b border-gray-700">
+                      <th class="text-left py-2">Fecha</th>
+                      <th class="text-left py-2">EUR→VES</th>
+                      <th class="text-left py-2">EUR→USD</th>
+                      <th class="text-left py-2">USD→VES</th>
+                      <th class="text-left py-2">Fuente</th>
+                      <th class="text-left py-2">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-gray-200">
+                    <tr class="border-b border-gray-700">
+                      <td class="py-2">2025-12-13</td>
+                      <td class="py-2">42.123456</td>
+                      <td class="py-2">1.080000</td>
+                      <td class="py-2">39.003200</td>
+                      <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-gray-700">manual</span></td>
+                      <td class="py-2">
+                        <button class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs">Editar</button>
+                      </td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                      <td class="py-2">2025-12-12</td>
+                      <td class="py-2">41.900000</td>
+                      <td class="py-2">1.079000</td>
+                      <td class="py-2">38.832250</td>
+                      <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-gray-700">manual</span></td>
+                      <td class="py-2">
+                        <button class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs">Editar</button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="py-2">2025-12-11</td>
+                      <td class="py-2">41.500000</td>
+                      <td class="py-2">1.081000</td>
+                      <td class="py-2">38.397780</td>
+                      <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-gray-700">manual</span></td>
+                      <td class="py-2">
+                        <button class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs">Editar</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mt-4 text-xs text-gray-400">
+                Nota: USD→VES normalmente se deriva de (EUR→VES / EUR→USD).
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAYMENTS -->
+        <section id="view-payments" class="view hidden space-y-6">
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-semibold">Pagos reportados</h2>
+                <p class="text-sm text-gray-400">Validación manual de pagos (pendiente / aprobado / rechazado)</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <select class="px-3 py-2 rounded-lg bg-gray-700 outline-none">
+                  <option>Pendientes</option>
+                  <option>Aprobados</option>
+                  <option>Rechazados</option>
+                </select>
+                <input placeholder="Buscar cliente…" class="px-3 py-2 rounded-lg bg-gray-700 outline-none w-64" />
+                <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">Actualizar</button>
+              </div>
+            </div>
+
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="text-gray-300">
+                  <tr class="border-b border-gray-700">
+                    <th class="text-left py-2">Cliente</th>
+                    <th class="text-left py-2">Monto</th>
+                    <th class="text-left py-2">Moneda</th>
+                    <th class="text-left py-2">Referencia</th>
+                    <th class="text-left py-2">Estado</th>
+                    <th class="text-left py-2">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-200">
+                  <tr class="border-b border-gray-700">
+                    <td class="py-2">
+                      <div class="font-semibold">Juan Pérez</div>
+                      <div class="text-xs text-gray-400">ID: 102 · hace 10 min</div>
+                    </td>
+                    <td class="py-2 font-semibold">1,200.00</td>
+                    <td class="py-2">VES</td>
+                    <td class="py-2">000123</td>
+                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">pending</span></td>
+                    <td class="py-2">
+                      <button data-open-modal="payment"
+                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
+                        Revisar
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr class="border-b border-gray-700">
+                    <td class="py-2">
+                      <div class="font-semibold">María Gómez</div>
+                      <div class="text-xs text-gray-400">ID: 103 · hace 40 min</div>
+                    </td>
+                    <td class="py-2 font-semibold">25.00</td>
+                    <td class="py-2">USD</td>
+                    <td class="py-2">TRF-88991</td>
+                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">Pendiente</span></td>
+                    <td class="py-2">
+                      <button data-open-modal="payment"
+                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
+                        Revisar
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td class="py-2">
+                      <div class="font-semibold">Carlos Ruiz</div>
+                      <div class="text-xs text-gray-400">ID: 104 · hace 2 h</div>
+                    </td>
+                    <td class="py-2 font-semibold">18.00</td>
+                    <td class="py-2">USD</td>
+                    <td class="py-2">PM-4432</td>
+                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">Pendiente</span></td>
+                    <td class="py-2">
+                      <button data-open-modal="payment"
+                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
+                        Revisar
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-4 text-xs text-gray-400">
+              Nota: en la versión conectada, aquí se mostrará el comprobante (Storage) y se aprobará/rechazará.
+            </div>
+          </div>
+        </section>
+
+        <!-- REPORTS -->
+        <section id="view-reports" class="view hidden space-y-6">
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-semibold">Reporte diario</h2>
+                <p class="text-sm text-gray-400">Ventas confirmadas por piso</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="date" class="px-3 py-2 rounded-lg bg-gray-700 outline-none" />
+                <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">Buscar</button>
+              </div>
+            </div>
+
+            <div class="mt-4 grid md:grid-cols-3 gap-3">
+              <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold">Piso 1</div>
+                  <div class="text-xs text-gray-400">12 ventas</div>
+                </div>
+                <div class="mt-2 text-2xl font-extrabold">$ 420.00</div>
+                <div class="mt-2 text-xs text-gray-300">Contado: $360 · Crédito: $60</div>
+              </div>
+
+              <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold">Piso 2</div>
+                  <div class="text-xs text-gray-400">18 ventas</div>
+                </div>
+                <div class="mt-2 text-2xl font-extrabold">$ 610.50</div>
+                <div class="mt-2 text-xs text-gray-300">Contado: $520 · Crédito: $90.5</div>
+              </div>
+
+              <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold">Piso 3</div>
+                  <div class="text-xs text-gray-400">9 ventas</div>
+                </div>
+                <div class="mt-2 text-2xl font-extrabold">$ 215.00</div>
+                <div class="mt-2 text-xs text-gray-300">Contado: $195 · Crédito: $20</div>
+              </div>
+            </div>
+
+            <div class="mt-5 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="text-gray-300">
+                  <tr class="border-b border-gray-700">
+                    <th class="text-left py-2">Piso</th>
+                    <th class="text-left py-2">Ventas</th>
+                    <th class="text-left py-2">Total USD</th>
+                    <th class="text-left py-2">Contado</th>
+                    <th class="text-left py-2">Crédito</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-200">
+                  <tr class="border-b border-gray-700">
+                    <td class="py-2">Piso 1</td>
+                    <td class="py-2">12</td>
+                    <td class="py-2">$420.00</td>
+                    <td class="py-2">$360.00</td>
+                    <td class="py-2">$60.00</td>
+                  </tr>
+                  <tr class="border-b border-gray-700">
+                    <td class="py-2">Piso 2</td>
+                    <td class="py-2">18</td>
+                    <td class="py-2">$610.50</td>
+                    <td class="py-2">$520.00</td>
+                    <td class="py-2">$90.50</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2">Piso 3</td>
+                    <td class="py-2">9</td>
+                    <td class="py-2">$215.00</td>
+                    <td class="py-2">$195.00</td>
+                    <td class="py-2">$20.00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- INVENTORY -->
+        <section id="view-inventory" class="view hidden space-y-6">
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-semibold">Inventario (lectura)</h2>
+                <p class="text-sm text-gray-400">Stock por piso (vista preliminar)</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <select class="px-3 py-2 rounded-lg bg-gray-700 outline-none">
+                  <option>Piso 1</option>
+                  <option>Piso 2</option>
+                  <option>Piso 3</option>
+                </select>
+                <input placeholder="Buscar producto…" class="px-3 py-2 rounded-lg bg-gray-700 outline-none w-64" />
+                <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">Actualizar</button>
+              </div>
+            </div>
+
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="text-gray-300">
+                  <tr class="border-b border-gray-700">
+                    <th class="text-left py-2">Producto</th>
+                    <th class="text-left py-2">Categoría</th>
+                    <th class="text-left py-2">Stock</th>
+                    <th class="text-left py-2">Mínimo</th>
+                    <th class="text-left py-2">Estado</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-200">
+                  <tr class="border-b border-gray-700">
+                    <td class="py-2 font-semibold">Agua 600ml</td>
+                    <td class="py-2">Bebidas</td>
+                    <td class="py-2">8</td>
+                    <td class="py-2">10</td>
+                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-red-600">bajo</span></td>
+                  </tr>
+                  <tr class="border-b border-gray-700">
+                    <td class="py-2 font-semibold">Nestea</td>
+                    <td class="py-2">Bebidas</td>
+                    <td class="py-2">22</td>
+                    <td class="py-2">10</td>
+                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-green-600">ok</span></td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 font-semibold">Galletas</td>
+                    <td class="py-2">Postres</td>
+                    <td class="py-2">11</td>
+                    <td class="py-2">10</td>
+                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">atento</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-4 flex flex-col sm:flex-row gap-2">
+              <button class="px-4 py-3 rounded-xl bg-gray-700 hover:bg-gray-600">Registrar ajuste (próx.)</button>
+              <button class="px-4 py-3 rounded-xl bg-gray-700 hover:bg-gray-600">Registrar merma (próx.)</button>
+              <button class="px-4 py-3 rounded-xl bg-gray-700 hover:bg-gray-600">Transferencias (próx.)</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- CUSTOMERS -->
+        <section id="view-customers" class="view hidden space-y-6">
+          <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-semibold">Clientes fijos</h2>
+                <p class="text-sm text-gray-400">Crédito, estado y administración</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input placeholder="Buscar cliente…" class="px-3 py-2 rounded-lg bg-gray-700 outline-none w-64" />
+                <button data-open-modal="customer"
+                  class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-sm">Nuevo</button>
+              </div>
+            </div>
+
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="text-gray-300">
+                  <tr class="border-b border-gray-700">
+                    <th class="text-left py-2">Cliente</th>
+                    <th class="text-left py-2">Teléfono</th>
+                    <th class="text-left py-2">Límite USD</th>
+                    <th class="text-left py-2">Deuda USD</th>
+                    <th class="text-left py-2">Estado</th>
+                    <th class="text-left py-2">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-200">
+                  <tr class="border-b border-gray-700">
+                    <td class="py-2">
+                      <div class="font-semibold">Juan Pérez</div>
+                      <div class="text-xs text-gray-400">CI: V-12345678</div>
+                    </td>
+                    <td class="py-2">0414-0000000</td>
+                    <td class="py-2">$200.00</td>
+                    <td class="py-2">$85.50</td>
+                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-green-600">activo</span></td>
+                    <td class="py-2">
+                      <button data-open-modal="customer"
+                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
+                        Editar
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td class="py-2">
+                      <div class="font-semibold">María Gómez</div>
+                      <div class="text-xs text-gray-400">CI: V-87654321</div>
+                    </td>
+                    <td class="py-2">0424-0000000</td>
+                    <td class="py-2">$150.00</td>
+                    <td class="py-2">$0.00</td>
+                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-green-600">activo</span></td>
+                    <td class="py-2">
+                      <button data-open-modal="customer"
+                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
+                        Editar
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MOBILE MENU (simple) -->
+  <div id="mobileMenu" class="hidden fixed inset-0 z-40 bg-black bg-opacity-60">
+    <div class="absolute left-0 top-0 h-full w-72 bg-gray-950 border-r border-gray-800 p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xl font-extrabold">Cafetería</div>
+          <div class="text-xs text-gray-400">Admin</div>
+        </div>
+        <button id="btnCloseMobile" class="px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-2">
+        <button data-view="dashboard"
+          class="nav-btn-m w-full text-left px-4 py-3 rounded-xl bg-gray-800 hover:bg-gray-700">📊 Dashboard</button>
+        <button data-view="rates" class="nav-btn-m w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800">💱
+          Tasas</button>
+        <button data-view="payments" class="nav-btn-m w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800">✅
+          Pagos</button>
+        <button data-view="reports" class="nav-btn-m w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800">📅
+          Reportes</button>
+        <button data-view="inventory" class="nav-btn-m w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800">📦
+          Inventario</button>
+        <button data-view="customers" class="nav-btn-m w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800">👤
+          Clientes</button>
+      </div>
+
+      <div class="mt-6 border-t border-gray-800 pt-4">
+        <a href="/pages/pos.html" class="block w-full text-center px-4 py-3 rounded-xl bg-gray-800 hover:bg-gray-700">
+          Ir al POS
+        </a>
+        <button class="mt-2 w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700">
+          Salir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Payment Review -->
+  <div id="modalPayment" class="hidden fixed inset-0 z-50 bg-black bg-opacity-60 items-center justify-center p-4">
+    <div class="w-full max-w-xl bg-gray-900 rounded-2xl border border-gray-700 p-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <h3 class="text-lg font-semibold">Validar pago</h3>
+          <p class="text-sm text-gray-400">Visual (luego se conecta a Supabase)</p>
+        </div>
+        <button data-close-modal class="px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">✕</button>
+      </div>
+
+      <div class="mt-4 grid md:grid-cols-2 gap-3">
+        <div class="bg-gray-800 rounded-xl p-3 border border-gray-700">
+          <div class="text-xs text-gray-400">Cliente</div>
+          <div class="font-semibold">Juan Pérez</div>
+          <div class="text-xs text-gray-400 mt-1">Ref: 000123</div>
+        </div>
+        <div class="bg-gray-800 rounded-xl p-3 border border-gray-700">
+          <div class="text-xs text-gray-400">Monto</div>
+          <div class="text-2xl font-extrabold">VES 1,200.00</div>
+          <div class="text-xs text-gray-400 mt-1">Estado: Pendiente</div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-sm text-gray-300 mb-1">Tasa a usar (opcional)</label>
+        <select class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none">
+          <option>Usar tasa del reporte o última</option>
+          <option>2025-12-13 · USD→VES 39.003200</option>
+          <option>2025-12-12 · USD→VES 38.832250</option>
+        </select>
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-sm text-gray-300 mb-1">Comentario (opcional)</label>
+        <textarea class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" rows="3"
+          placeholder="Ej: comprobante ilegible, falta referencia, etc."></textarea>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <button class="flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-700 font-semibold">Aprobar</button>
+        <button class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 font-semibold">Rechazar</button>
+      </div>
+
+      <div class="mt-3 text-xs text-gray-400">
+        Próximo: mostrar comprobante desde Storage (link firmado).
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Customer -->
+  <div id="modalCustomer" class="hidden fixed inset-0 z-50 bg-black bg-opacity-60 items-center justify-center p-4">
+    <div class="w-full max-w-xl bg-gray-900 rounded-2xl border border-gray-700 p-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <h3 class="text-lg font-semibold">Cliente fijo</h3>
+          <p class="text-sm text-gray-400">Crear / Editar (visual)</p>
+        </div>
+        <button data-close-modal class="px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">✕</button>
+      </div>
+
+      <form class="mt-4 grid md:grid-cols-2 gap-3">
+        <div class="md:col-span-2">
+          <label class="block text-sm text-gray-300 mb-1">Nombre completo</label>
+          <input class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" placeholder="Ej: Juan Pérez" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">Documento (CI/RIF)</label>
+          <input class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" placeholder="Ej: V-12345678" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">Teléfono</label>
+          <input class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" placeholder="Ej: 0414-0000000" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">Email</label>
+          <input type="email" class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none"
+            placeholder="correo@ejemplo.com" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">Límite de crédito (USD)</label>
+          <input inputmode="decimal" class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none"
+            placeholder="Ej: 200.00" />
+        </div>
+
+        <div class="md:col-span-2 flex items-center justify-between bg-gray-800 rounded-xl p-3 border border-gray-700">
+          <div>
+            <div class="font-semibold">Estado</div>
+            <div class="text-xs text-gray-400">Permite compras a crédito</div>
+          </div>
+          <label class="inline-flex items-center gap-2">
+            <span class="text-sm text-gray-300">Activo</span>
+            <input type="checkbox" class="h-4 w-4" checked />
+          </label>
+        </div>
+
+        <div class="md:col-span-2 flex gap-2 mt-2">
+          <button type="button"
+            class="flex-1 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 font-semibold">Cancelar</button>
+          <button type="button"
+            class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 font-semibold">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tiny JS for navigation + modals (visual only) -->
+  <script type="module">
+    import { includeMany } from '/assets/include.js';
+    import initLayout from '/assets/js/layout.js';
+    import { requireRole } from '/assets/js/guard.js';
+
+    await includeMany([
+      { selector: '#sidebar-slot', url: '/partials/sidebar.html' },
+      { selector: '#topbar-slot', url: '/partials/topbar.html' }
+    ]);
+    await initLayout({ pageTitle: 'Admin' });
+
+    // Only admins can access this page
+    const profile = await requireRole(['admin']);
+    if (!profile) throw new Error('Access denied');
+
+    showView("dashboard");
+
+    const title = document.getElementById("pageTitle");
+    const views = document.querySelectorAll(".view");
+    const navBtns = document.querySelectorAll(".nav-btn");
+    const quick = document.querySelectorAll(".quick");
+
+    function showView(name) {
+      views.forEach(v => v.classList.add("hidden"));
+      const active = document.getElementById("view-" + name);
+      if (active) active.classList.remove("hidden");
+
+      navBtns.forEach(b => b.classList.remove("bg-gray-800"));
+      navBtns.forEach(b => b.classList.add("hover:bg-gray-800"));
+
+      const btn = [...navBtns].find(b => b.dataset.view === name);
+      if (btn) btn.classList.add("bg-gray-800");
+
+      const map = {
+        dashboard: "Dashboard",
+        rates: "Tasas",
+        payments: "Pagos Reportados",
+        reports: "Reportes Diarios",
+        inventory: "Inventario",
+        customers: "Clientes Fijos"
+      };
+      title.textContent = map[name] || "Admin";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    navBtns.forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
+    quick.forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
+
+    // Mobile menu
+    const mobileMenu = document.getElementById("mobileMenu");
+    document.getElementById("btnMobileMenu").addEventListener("click", () => mobileMenu.classList.remove("hidden"));
+    document.getElementById("btnCloseMobile").addEventListener("click", () => mobileMenu.classList.add("hidden"));
+    document.querySelectorAll(".nav-btn-m").forEach(b => b.addEventListener("click", () => {
+      showView(b.dataset.view);
+      mobileMenu.classList.add("hidden");
+    }));
+    mobileMenu.addEventListener("click", (e) => { if (e.target === mobileMenu) mobileMenu.classList.add("hidden"); });
+
+    // Modals
+    const modalPayment = document.getElementById("modalPayment");
+    const modalCustomer = document.getElementById("modalCustomer");
+
+    document.querySelectorAll("[data-open-modal='payment']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        modalPayment.classList.remove("hidden");
+        modalPayment.classList.add("flex");
+      });
+    });
+
+    document.querySelectorAll("[data-open-modal='customer']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        modalCustomer.classList.remove("hidden");
+        modalCustomer.classList.add("flex");
+      });
+    });
+
+    document.querySelectorAll("[data-close-modal]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        modalPayment.classList.add("hidden"); modalPayment.classList.remove("flex");
+        modalCustomer.classList.add("hidden"); modalCustomer.classList.remove("flex");
+      });
+    });
+
+    [modalPayment, modalCustomer].forEach(m => m.addEventListener("click", (e) => {
+      if (e.target === m) { m.classList.add("hidden"); m.classList.remove("flex"); }
+    }));
+
+    // Default view
+    showView("dashboard");
+  </script>
+</body>
+
+</html>

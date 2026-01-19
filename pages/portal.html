@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Portal | Cafetería</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body data-page="portal" class="bg-gray-900 text-white min-h-screen">
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar slot -->
+    <div id="sidebar-slot"></div>
+
+    <main class="flex-1 p-4 max-w-6xl mx-auto space-y-6">
+
+      <!-- Topbar slot -->
+      <div id="topbar-slot"></div>
+
+    <!-- Hero / Resumen -->
+    <section class="grid lg:grid-cols-3 gap-4">
+      <!-- Resumen deuda -->
+      <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-semibold">Resumen de deuda</h2>
+            <p class="text-sm text-gray-400">Saldo pendiente a crédito</p>
+          </div>
+          <span class="text-xs px-2 py-1 rounded bg-gray-700">
+            Tasa: 2025-12-13
+          </span>
+        </div>
+
+        <div class="mt-4 space-y-3">
+          <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+            <div class="text-xs text-gray-400">Saldo (USD)</div>
+            <div class="mt-1 text-3xl font-extrabold">$ 85.50</div>
+            <div class="mt-1 text-xs text-gray-400">Incluye facturas abiertas</div>
+          </div>
+
+          <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+            <div class="text-xs text-gray-400">Equivalente (VES)</div>
+            <div class="mt-1 text-3xl font-extrabold">Bs 3,335.77</div>
+            <div class="mt-1 text-xs text-gray-400">USD→VES: 39.003200</div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-col sm:flex-row gap-2">
+          <button id="btnPay" class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 font-semibold">
+            Reportar pago
+          </button>
+          <button class="flex-1 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 font-semibold">
+            Actualizar
+          </button>
+        </div>
+
+        <div class="mt-3 text-xs text-gray-400">
+          Nota: el pago quedará <b>pendiente</b> hasta que el administrador lo valide.
+        </div>
+      </div>
+
+      <!-- Estado / Tips -->
+      <div class="lg:col-span-2 bg-gray-800 rounded-2xl p-4 border border-gray-700">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Estado de tu cuenta</h2>
+            <p class="text-sm text-gray-400">Información general del crédito</p>
+          </div>
+          <span class="text-xs px-2 py-1 rounded bg-green-600">Activo</span>
+        </div>
+
+        <div class="mt-4 grid md:grid-cols-3 gap-3">
+          <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+            <div class="text-xs text-gray-400">Límite de crédito</div>
+            <div class="mt-2 text-2xl font-extrabold">$ 200.00</div>
+            <div class="mt-1 text-xs text-gray-400">Máximo permitido</div>
+          </div>
+
+          <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+            <div class="text-xs text-gray-400">Disponible</div>
+            <div class="mt-2 text-2xl font-extrabold">$ 114.50</div>
+            <div class="mt-1 text-xs text-gray-400">Límite - deuda</div>
+          </div>
+
+          <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+            <div class="text-xs text-gray-400">Facturas abiertas</div>
+            <div class="mt-2 text-2xl font-extrabold">3</div>
+            <div class="mt-1 text-xs text-gray-400">Pendientes de pago</div>
+          </div>
+        </div>
+
+        <div class="mt-4 bg-gray-900 rounded-2xl p-4 border border-gray-700">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">Consejos para pagar más rápido</div>
+            <span class="text-xs px-2 py-1 rounded bg-gray-700">Tips</span>
+          </div>
+          <ul class="mt-2 text-sm text-gray-300 list-disc list-inside space-y-1">
+            <li>Incluye siempre la referencia o número de transferencia.</li>
+            <li>Si pagas en VES, el sistema lo convierte a USD usando la tasa seleccionada.</li>
+            <li>El administrador aplicará el pago a tus facturas más antiguas primero (FIFO).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Facturas / Créditos -->
+    <section class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold">Créditos / Facturas abiertas</h2>
+          <p class="text-sm text-gray-400">Detalle de tus compras a crédito</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <select class="px-3 py-2 rounded-lg bg-gray-700 outline-none">
+            <option>Abiertas</option>
+            <option>Todas</option>
+            <option>Pagadas</option>
+          </select>
+          <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
+            Exportar
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-gray-300">
+            <tr class="border-b border-gray-700">
+              <th class="text-left py-2">Fecha</th>
+              <th class="text-left py-2">Vence</th>
+              <th class="text-left py-2">Monto USD</th>
+              <th class="text-left py-2">Saldo USD</th>
+              <th class="text-left py-2">Saldo VES</th>
+              <th class="text-left py-2">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-200">
+            <tr class="border-b border-gray-700">
+              <td class="py-2">2025-12-10</td>
+              <td class="py-2">2025-12-25</td>
+              <td class="py-2">$ 30.00</td>
+              <td class="py-2 font-semibold">$ 30.00</td>
+              <td class="py-2">Bs 1,170.10</td>
+              <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">pendiente</span></td>
+            </tr>
+            <tr class="border-b border-gray-700">
+              <td class="py-2">2025-12-11</td>
+              <td class="py-2">2025-12-26</td>
+              <td class="py-2">$ 25.50</td>
+              <td class="py-2 font-semibold">$ 25.50</td>
+              <td class="py-2">Bs 994.58</td>
+              <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">pendiente</span></td>
+            </tr>
+            <tr>
+              <td class="py-2">2025-12-12</td>
+              <td class="py-2">2025-12-27</td>
+              <td class="py-2">$ 30.00</td>
+              <td class="py-2 font-semibold">$ 30.00</td>
+              <td class="py-2">Bs 1,170.10</td>
+              <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-red-600">rechazado</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state example (hidden by default) -->
+      <div class="hidden mt-4 bg-gray-900 border border-gray-700 rounded-2xl p-6">
+        <div class="text-lg font-semibold">Sin deudas abiertas</div>
+        <div class="text-sm text-gray-400 mt-1">Cuando compres a crédito, aquí verás el detalle.</div>
+      </div>
+    </section>
+
+    <!-- Pagos reportados -->
+    <section class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold">Pagos reportados</h2>
+          <p class="text-sm text-gray-400">Historial de pagos enviados por ti</p>
+        </div>
+        <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
+          Ver más
+        </button>
+      </div>
+
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-gray-300">
+            <tr class="border-b border-gray-700">
+              <th class="text-left py-2">Fecha</th>
+              <th class="text-left py-2">Monto</th>
+              <th class="text-left py-2">Referencia</th>
+              <th class="text-left py-2">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-200">
+            <tr class="border-b border-gray-700">
+              <td class="py-2">2025-12-13 10:25</td>
+              <td class="py-2 font-semibold">VES 1,200.00</td>
+              <td class="py-2">000123</td>
+              <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">Pendiente</span></td>
+            </tr>
+            <tr class="border-b border-gray-700">
+              <td class="py-2">2025-12-11 18:10</td>
+              <td class="py-2 font-semibold">USD 20.00</td>
+              <td class="py-2">TRF-88991</td>
+              <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-green-600">Aprovado</span></td>
+            </tr>
+            <tr>
+              <td class="py-2">2025-12-09 14:05</td>
+              <td class="py-2 font-semibold">VES 300.00</td>
+              <td class="py-2">PM-4432</td>
+              <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-red-600">rechazado</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 text-xs text-gray-400">
+        Si un pago fue rechazado, revisa la referencia o vuelve a reportarlo.
+      </div>
+    </section>
+    </main>
+  </div>
+
+  <!-- Modal: Reportar pago -->
+  <div id="payModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-60 items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-gray-900 rounded-2xl border border-gray-700 p-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <h3 class="text-lg font-semibold">Reportar pago</h3>
+          <p class="text-sm text-gray-400">Completa los datos del pago</p>
+        </div>
+        <button id="btnClosePay" class="px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">✕</button>
+      </div>
+
+      <form class="mt-4 space-y-3">
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">Moneda</label>
+          <select class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none">
+            <option>VES (Bs)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">Monto</label>
+          <input inputmode="decimal" class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" placeholder="Ej: 25.00" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">Referencia</label>
+          <input class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" placeholder="Ej: Nro transferencia" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-300 mb-1">Nota (opcional)</label>
+          <textarea class="w-full px-3 py-2 rounded-lg bg-gray-700 outline-none" rows="3"
+                    placeholder="Ej: pago móvil, banco, etc."></textarea>
+        </div>
+
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-3 text-xs text-gray-300">
+          <div class="font-semibold">Comprobante</div>
+          <div class="text-gray-400 mt-1">Adjunte su comprobante de pago</div>
+          <button type="button" class="mt-2 px-3 py-2 rounded bg-gray-700 hover:bg-gray-600">Adjuntar (próx.)</button>
+        </div>
+
+        <button type="button" class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 font-semibold">
+          Enviar reporte
+        </button>
+
+        <p class="text-xs text-gray-400">
+          Tu reporte quedará en estado <b>pendiente</b> hasta aprobación.
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tiny JS: modal only (visual) -->
+  <script type="module">
+    import { includeMany } from '/assets/include.js';
+    import initLayout from '/assets/js/layout.js';
+
+    await includeMany([
+      { selector: '#sidebar-slot', url: '/partials/sidebar.html' },
+      { selector: '#topbar-slot', url: '/partials/topbar.html' }
+    ]);
+    await initLayout({ pageTitle: 'Mi Portal' });
+
+  </script>
+
+  <script>
+    const btnPay = document.getElementById("btnPay");
+    const payModal = document.getElementById("payModal");
+    const btnClosePay = document.getElementById("btnClosePay");
+
+    btnPay.addEventListener("click", () => {
+      payModal.classList.remove("hidden");
+      payModal.classList.add("flex");
+    });
+
+    btnClosePay.addEventListener("click", () => {
+      payModal.classList.add("hidden");
+      payModal.classList.remove("flex");
+    });
+
+    payModal.addEventListener("click", (e) => {
+      if (e.target === payModal) {
+        payModal.classList.add("hidden");
+        payModal.classList.remove("flex");
+      }
+    });
+  </script>
+</body>
+</html>

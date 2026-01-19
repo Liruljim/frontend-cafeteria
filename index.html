@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cafetería</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+  <div class="text-center">
+    <div class="text-2xl font-bold">Cafetería</div>
+    <div class="text-gray-400 mt-2">Cargando…</div>
+  </div>
+
+  <script type="module">
+    import { getMyProfile } from "/assets/js/auth.js";
+    //import { routeByRole } from "/js/guard.js";
+
+    try {
+     
+      const profile = await getMyProfile();
+      if (!profile) window.location.href = "/pages/login.html";
+      //else window.location.href = "/pages/admin.html";
+    } catch(e) {
+      console.error("Error checking user session.", e);
+      //window.location.href = "/pages/login.html";
+    }
+  </script>
+</body>
+</html>

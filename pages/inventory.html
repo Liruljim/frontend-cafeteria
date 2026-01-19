@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Inventario · Cafetería</title>
+</head>
+
+<body data-page="inventory" class="bg-gray-900 text-white min-h-screen">
+  <div class="flex min-h-screen">
+    <div id="sidebar-slot"></div>
+
+    <main class="flex-1">
+      <div id="topbar-slot"></div>
+
+      <div class="p-4 max-w-6xl mx-auto space-y-6">
+        
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold">Inventario</h2>
+                <p class="text-gray-400 text-sm">Control de existencias y movimientos</p>
+            </div>
+            <div class="flex items-center gap-2">
+                 <select id="filterPiso" class="bg-gray-800 border-gray-700 text-gray-300 rounded-lg text-sm p-2.5 focus:border-red-500 focus:outline-none">
+                     <option value="">Todos los Pisos</option>
+                 </select>
+                 <button onclick="loadInventory()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm transition-colors">Refrescar</button>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-lg">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-400 uppercase bg-gray-900/50">
+                        <tr>
+                            <th class="px-6 py-3">Producto</th>
+                            <th class="px-6 py-3">Categoría</th>
+                            <th class="px-6 py-3">Piso</th>
+                            <th class="px-6 py-3 text-center">Stock Actual</th>
+                            <th class="px-6 py-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody" class="divide-y divide-gray-700">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <h3 class="text-xl font-bold mb-4">Historial de Movimientos</h3>
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-400 uppercase bg-gray-900/50">
+                            <tr>
+                                <th class="px-6 py-3">Fecha</th>
+                                <th class="px-6 py-3">Producto</th>
+                                <th class="px-6 py-3">Piso</th>
+                                <th class="px-6 py-3">Tipo</th>
+                                <th class="px-6 py-3 text-right">Cantidad</th>
+                                <th class="px-6 py-3">Observación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movementsTableBody" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="modalAdjustment" class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-md p-6 shadow-2xl relative">
+        <button id="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-200">✕</button>
+        
+        <h3 id="modalTitle" class="text-xl font-bold mb-1">Ajustar Stock</h3>
+        <p id="modalSubtitle" class="text-sm text-gray-400 mb-4">Producto: -</p>
+
+        <div class="flex gap-2 mb-4 border-b border-gray-700 pb-2">
+            <button type="button" onclick="toggleMode('ADJUST')" class="flex-1 py-1 text-sm font-bold text-blue-400 hover:text-blue-300 focus:outline-none">Ajustar Cantidad</button>
+            <div class="w-px bg-gray-700"></div>
+            <button type="button" onclick="toggleMode('MOVE')" class="flex-1 py-1 text-sm font-bold text-green-400 hover:text-green-300 focus:outline-none">Cambiar Piso</button>
+        </div>
+
+        <form id="adjustForm" class="space-y-4">
+            <input type="hidden" id="adjProductId">
+            <input type="hidden" id="adjPisoId">
+            
+            <div id="sectionAdjust">
+                <div class="mb-4">
+                    <label class="block text-sm text-gray-400 mb-2">Modo</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipo" value="DELTA" checked class="peer sr-only">
+                            <div class="text-center py-2 rounded-lg border border-gray-600 bg-gray-800 peer-checked:bg-blue-600 peer-checked:border-blue-500 transition-all text-sm">
+                                Sumar / Restar
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipo" value="SET" class="peer sr-only">
+                            <div class="text-center py-2 rounded-lg border border-gray-600 bg-gray-800 peer-checked:bg-blue-600 peer-checked:border-blue-500 transition-all text-sm">
+                                Fijar Valor
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="divCantidad">
+                    <label for="cantidad" class="block text-sm text-gray-400 mb-1">Cantidad</label>
+                    <input type="number" id="cantidad"
+                        class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 text-lg font-bold">
+                    <p class="text-xs text-gray-500 mt-1">Negativo para restar (-1)</p>
+                </div>
+            </div>
+
+            <div id="sectionMove" class="hidden space-y-4">
+                 <div class="bg-green-900/20 p-3 rounded border border-green-900/50 text-sm text-green-200">
+                    <p>Mueve todo el stock a otro piso. Si el producto ya existe allí, se sumará.</p>
+                 </div>
+                 <div>
+                    <label class="block text-sm text-gray-400 mb-1">Piso Destino</label>
+                    <select id="selectDestPiso" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white outline-none">
+                        <!-- Populated via JS -->
+                    </select>
+                 </div>
+            </div>
+
+            <div>
+                <label for="observacion" class="block text-sm text-gray-400 mb-1">Observación</label>
+                <textarea id="observacion" rows="2"
+                    class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-gray-700 hover:bg-gray-600 font-bold transition-colors shadow-lg border border-gray-600">
+                Guardar Cambios
+            </button>
+        </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { includeMany } from '/assets/include.js';
+    import initLayout from '/assets/js/layout.js';
+    import { apiGet, apiPut, apiPost, apiDelete } from '/assets/js/api.js';
+    import { Toast } from '/assets/js/toast.js';
+    import { requireRole } from '/assets/js/guard.js';
+
+    await includeMany([
+      { selector: '#sidebar-slot', url: '/partials/sidebar.html' },
+      { selector: '#topbar-slot', url: '/partials/topbar.html' }
+    ]);
+    await initLayout({ pageTitle: 'Inventario' });
+
+    // Admin only page
+    await requireRole(['admin']);
+
+    const inventoryBody = document.getElementById('inventoryTableBody');
+    const movementsBody = document.getElementById('movementsTableBody');
+    const filterPiso = document.getElementById('filterPiso');
+    const modal = document.getElementById('modalAdjustment');
+    const form = document.getElementById('adjustForm');
+    
+    const modalSubtitle = document.getElementById('modalSubtitle');
+    const adjProductId = document.getElementById('adjProductId');
+    const adjPisoId = document.getElementById('adjPisoId');
+
+    window.loadPisos = async () => {
+        try {
+            const pisos = await apiGet('api/pisos');
+            pisos.forEach(p => {
+                filterPiso.add(new Option(p.nombre, p.id));
+            });
+        } catch(e) { console.error(e); }
+    };
+
+    window.loadInventory = async () => {
+        try {
+            inventoryBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Cargando inventario...</td></tr>';
+            
+            const pisoId = filterPiso.value;
+            const params = pisoId ? { piso_id: pisoId } : {};
+            const data = await apiGet('api/inventario', params);
+            
+            inventoryBody.innerHTML = '';
+            if (!data || data.length === 0) {
+                inventoryBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No hay registros de inventario.</td></tr>';
+                return;
+            }
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-700/50 transition-colors border-b border-gray-700 last:border-0';
+                
+                let stockClass = 'text-green-400 font-bold';
+                if (item.stock <= 5) stockClass = 'text-red-500 font-bold';
+                else if (item.stock < 15) stockClass = 'text-yellow-500 font-bold';
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium">${item.productos?.nombre || '???'}</td>
+                    <td class="px-6 py-4 text-gray-400 text-xs uppercase">${item.productos?.categorias?.nombre || '-'}</td>
+                    <td class="px-6 py-4 text-gray-300">${item.pisos?.nombre || '???'}</td>
+                    <td class="px-6 py-4 text-center text-lg ${stockClass}">${item.stock}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button class="text-blue-400 hover:text-blue-300 transition-colors p-1" title="Ajustar Stock" 
+                                onclick='window.openAdjustment("${item.producto_id}", "${item.piso_id}", "${item.productos.nombre}", "${item.pisos.nombre}")'>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                            </button>
+                            <button class="text-red-400 hover:text-red-300 transition-colors p-1" title="Eliminar Registro" 
+                                onclick='window.deleteInventory("${item.producto_id}", "${item.piso_id}")'>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                inventoryBody.appendChild(tr);
+            });
+
+            loadMovements(); 
+
+        } catch (error) {
+            inventoryBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
+        }
+    };
+
+    window.loadMovements = async () => {
+        try {
+            movementsBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Cargando historial...</td></tr>';
+            const data = await apiGet('api/inventario/movimientos'); 
+
+            movementsBody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                movementsBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Sin movimientos recientes</td></tr>';
+                return;
+            }
+
+            data.forEach(mov => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-700 hover:bg-gray-700/30';
+                const date = new Date(mov.fecha).toLocaleString();
+                const typeColor = mov.tipo_movimiento === 'ENTRADA' ? 'text-green-400' : (mov.tipo_movimiento === 'SALIDA' ? 'text-red-400' : 'text-blue-400');
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 text-xs text-gray-400">${date}</td>
+                    <td class="px-6 py-4 text-sm font-medium">${mov.productos?.nombre || '-'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${mov.pisos?.nombre || '-'}</td>
+                    <td class="px-6 py-4 text-xs font-bold ${typeColor}">${mov.tipo_movimiento}</td>
+                    <td class="px-6 py-4 text-right font-mono">${mov.cantidad > 0 ? '+' : ''}${mov.cantidad}</td>
+                    <td class="px-6 py-4 text-xs text-gray-500 italic max-w-xs truncate">${mov.observacion || ''}</td>
+                `;
+                movementsBody.appendChild(tr);
+            });
+        } catch(e) { console.error(e); }
+    };
+
+
+
+    const radioModeDelta = document.querySelector('input[name="tipo"][value="DELTA"]');
+    const radioModeSet = document.querySelector('input[name="tipo"][value="SET"]');
+
+    const divCantidad = document.getElementById('divCantidad');
+
+    window.openAdjustment = (prodId, pisoId, prodName, pisoName) => {
+        adjProductId.value = prodId;
+        adjPisoId.value = pisoId;
+        modalSubtitle.textContent = `${prodName} en ${pisoName}`;
+        
+        form.reset();
+        document.getElementById('sectionMove').classList.add('hidden');
+        document.getElementById('sectionAdjust').classList.remove('hidden');
+        document.getElementById('modalTitle').textContent = 'Ajustar Stock';
+        
+        const selectDest = document.getElementById('selectDestPiso');
+        selectDest.innerHTML = '<option value="">-- Seleccionar Nuevo Piso --</option>';
+        Array.from(filterPiso.options).forEach(opt => {
+            if (opt.value && opt.value !== pisoId) {
+                selectDest.add(new Option(opt.text, opt.value));
+            }
+        });
+
+        modal.classList.remove('hidden');
+    };
+
+    window.toggleMode = (mode) => {
+        if (mode === 'MOVE') {
+            document.getElementById('sectionAdjust').classList.add('hidden');
+            document.getElementById('sectionMove').classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = 'Mover a otro Piso';
+        } else {
+            document.getElementById('sectionMove').classList.add('hidden');
+            document.getElementById('sectionAdjust').classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = 'Ajustar Stock';
+        }
+    };
+
+    document.getElementById('closeModal').addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+
+    window.deleteInventory = async (prodId, pisoId) => {
+        if (!confirm('¿Estás seguro de eliminar este registro de inventario (stock 0)?')) return;
+        try {
+            await apiDelete(`api/inventario?producto_id=${prodId}&piso_id=${pisoId}`);
+            loadInventory();
+        } catch(e) {
+            alert('Error al eliminar: ' + e.message);
+        }
+    };
+
+    filterPiso.addEventListener('change', loadInventory);
+
+
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+
+        const isMoveMode = !document.getElementById('sectionMove').classList.contains('hidden');
+        
+        try {
+            if (isMoveMode) {
+                 const destPiso = document.getElementById('selectDestPiso').value;
+                 if (!destPiso) throw new Error('Selecciona un piso destino');
+                 
+                 const payload = {
+                     producto_id: adjProductId.value,
+                     piso_origen_id: adjPisoId.value,
+                     piso_destino_id: destPiso,
+                 };
+                 await apiPost('api/inventario/mover', payload);
+
+            } else {
+                const qtyVal = document.getElementById('cantidad').value;
+                if (!qtyVal) throw new Error('Ingresa una cantidad');
+                
+                const payload = {
+                    producto_id: adjProductId.value,
+                    piso_id: adjPisoId.value,
+                    cantidad: parseInt(qtyVal),
+                    tipo: form.querySelector('input[name="tipo"]:checked').value,
+                    observacion: document.getElementById('observacion').value
+                };
+                await apiPut('api/inventario', payload);
+            }
+
+            modal.classList.add('hidden');
+            loadInventory();
+            alert('Operación exitosa');
+
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+             btn.disabled = false;
+             btn.textContent = 'Guardar Cambios';
+        }
+    });
+
+    await loadPisos();
+    loadInventory();
+  </script>
+</body>
+</html>
