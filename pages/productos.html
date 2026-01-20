@@ -75,6 +75,23 @@
                     </div>
                 </div>
 
+                <!-- Initial Stock Section (New) -->
+                <div id="initialStockSection" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-900/50 rounded-xl border border-gray-700">
+                    <div>
+                        <label for="piso_inicial_id" class="block text-sm text-gray-400 mb-1">Piso para Stock Inicial</label>
+                        <select id="piso_inicial_id"
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 transition-colors">
+                            <option value="">Seleccione un piso (opcional)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="stock_inicial" class="block text-sm text-gray-400 mb-1">Cantidad Inicial</label>
+                        <input type="number" id="stock_inicial" min="0" 
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-red-500 transition-colors"
+                            placeholder="Ej. 100">
+                    </div>
+                </div>
+
                 <div class="flex gap-3 pt-2">
                     <button type="submit" id="saveBtn" class="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-medium transition-colors">
                         Guardar
@@ -139,9 +156,21 @@
     const saveBtn = document.getElementById('saveBtn');
     const categorySelect = document.getElementById('category_id');
     const providerSelect = document.getElementById('proveedor_id');
+    const pisoInicialSelect = document.getElementById('piso_inicial_id');
+    const initialStockSection = document.getElementById('initialStockSection');
+    const tipoSelect = document.getElementById('tipo');
     
     let isEditing = false;
     let editId = null;
+
+    // Show/Hide initial stock section
+    tipoSelect.addEventListener('change', () => {
+        if (tipoSelect.value === 'stock' && !isEditing) {
+            initialStockSection.classList.remove('hidden');
+        } else {
+            initialStockSection.classList.add('hidden');
+        }
+    });
 
     const showMessage = (msg, type = 'success') => {
         messageDiv.textContent = msg;
@@ -154,6 +183,12 @@
             const categories = await apiGet('api/categorias');
             categories.forEach(cat => {
                 categorySelect.add(new Option(cat.nombre, cat.id));
+            });
+
+            // Also load floors for initial stock
+            const pisos = await apiGet('api/pisos');
+            pisos.forEach(p => {
+                pisoInicialSelect.add(new Option(p.nombre, p.id));
             });
         } catch (error) {
             console.error(error);
@@ -241,6 +276,7 @@
 
         saveBtn.textContent = 'Actualizar';
         cancelBtn.classList.remove('hidden');
+        initialStockSection.classList.add('hidden'); // Hide on edit to avoid confusion
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -261,6 +297,7 @@
         form.reset();
         saveBtn.textContent = 'Guardar';
         cancelBtn.classList.add('hidden');
+        initialStockSection.classList.remove('hidden');
         providerSelect.innerHTML = '<option value="">Seleccione categoría primero</option>';
         providerSelect.disabled = true;
     });
@@ -274,7 +311,9 @@
             category_id: document.getElementById('category_id').value,
             proveedor_id: document.getElementById('proveedor_id').value,
             precio: parseFloat(document.getElementById('precio').value),
-            tipo: document.getElementById('tipo').value
+            tipo: document.getElementById('tipo').value,
+            piso_inicial_id: document.getElementById('piso_inicial_id').value,
+            stock_inicial: document.getElementById('stock_inicial').value
         };
 
         try {

@@ -55,7 +55,7 @@
               <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">Ver todo</button>
             </div>
 
-            <div class="mt-4 space-y-3">
+            <div id="activity-list" class="mt-4 space-y-3">
               <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
                 <div class="flex items-center justify-between">
                   <div class="font-semibold">Pago reportado · Juan Pérez</div>
@@ -122,39 +122,57 @@
     await requireRole(['admin']);
 
     async function loadDashboard() {
+        // Set loading state
+        const kpiValues = document.querySelectorAll('.grid .text-3xl');
+        kpiValues.forEach(el => el.textContent = '...');
+        const activityList = document.querySelector('#activity-list');
+
         try {
+            console.log('Fetching dashboard metrics...');
             const data = await apiGet('api/dashboard/metrics');
+            console.log('Dashboard data received:', data);
             
-            // KPI Cards
-            document.querySelector('.grid div:nth-child(1) .text-3xl').textContent = `$ ${data.today.sales.toFixed(2)}`;
-            document.querySelector('.grid div:nth-child(2) .text-3xl').textContent = `$ ${data.today.credits.toFixed(2)}`;
-            document.querySelector('.grid div:nth-child(2) .text-xs').textContent = `${data.today.creditCount} ventas a crédito`;
-            
-            document.querySelector('.grid div:nth-child(3) .text-3xl').textContent = data.pendingClients;
-            document.querySelector('.grid div:nth-child(4) .text-3xl').textContent = data.lowStock;
+            if (!data || !data.today) throw new Error('Datos de dashboard inválidos o vacíos');
+
+            // KPI Cards - Using safer indexes or specific IDs if we added them
+            const cards = document.querySelectorAll('.grid .text-3xl');
+            if (cards.length >= 4) {
+                cards[0].textContent = `$ ${parseFloat(data.today.sales || 0).toFixed(2)}`;
+                cards[1].textContent = `$ ${parseFloat(data.today.credits || 0).toFixed(2)}`;
+                cards[2].textContent = data.pendingClients;
+                cards[3].textContent = data.lowStock;
+                
+                // Update credit subtext
+                const creditSub = document.querySelector('.grid div:nth-child(2) .text-xs');
+                if (creditSub) creditSub.textContent = `${data.today.creditCount} ventas a crédito`;
+            }
 
             // Activity
-            const activityList = document.querySelector('.mt-4.space-y-3');
-            if (data.recentActivity.length > 0) {
-                activityList.innerHTML = data.recentActivity.map(act => `
-                    <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
-                        <div class="flex items-center justify-between">
-                            <div class="font-semibold">Venta · ${act.clientes ? act.clientes.nombre : 'Cliente Externo'}</div>
-                            <span class="text-xs px-2 py-1 rounded ${act.metodo_pago === 'CREDITO' ? 'bg-yellow-600' : 'bg-green-600'}">
-                                ${act.metodo_pago}
-                            </span>
+            if (activityList) {
+                if (data.recentActivity && data.recentActivity.length > 0) {
+                    activityList.innerHTML = data.recentActivity.map(act => `
+                        <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div class="font-semibold">Venta · ${act.clientes ? act.clientes.nombre : 'Cliente Externo'}</div>
+                                <span class="text-xs px-2 py-1 rounded ${act.metodo_pago === 'CREDITO' ? 'bg-yellow-600' : 'bg-green-600'}">
+                                    ${act.metodo_pago}
+                                </span>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-1">
+                                $ ${parseFloat(act.total).toFixed(2)} · ${new Date(act.fecha).toLocaleString()}
+                            </div>
                         </div>
-                        <div class="text-xs text-gray-400 mt-1">
-                            $ ${parseFloat(act.total).toFixed(2)} · ${new Date(act.fecha).toLocaleString()}
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                activityList.innerHTML = '<p class="text-center text-gray-500 py-4 italic">Sin actividad reciente</p>';
+                    `).join('');
+                } else {
+                    activityList.innerHTML = '<p class="text-center text-gray-500 py-4 italic">Sin actividad reciente</p>';
+                }
             }
 
         } catch (error) {
             console.error('Error loading dashboard:', error);
+            // Show error on cards
+            kpiValues.forEach(el => el.textContent = 'Error');
+            if (activityList) activityList.innerHTML = `<p class="text-red-400 text-center py-4">Error al cargar datos: ${error.message}</p>`;
         }
     }
 
