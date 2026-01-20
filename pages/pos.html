@@ -363,7 +363,9 @@
                     <div>
                          <div class="flex justify-between items-start">
                             <span class="text-xs py-1 px-2 rounded bg-gray-700 text-gray-300 mb-2 inline-block">${prod.categoria || 'Gral'}</span>
-                            <span class="text-xs font-bold ${prod.stock < 5 ? 'text-red-500' : 'text-green-500'}">Stock: ${prod.stock}</span>
+                            <span class="text-xs font-bold ${prod.tipo !== 'stock' ? 'text-blue-400' : (prod.stock < 5 ? 'text-red-500' : 'text-green-500')}">
+                                ${prod.tipo !== 'stock' ? 'Sin Límite' : 'Stock: ' + prod.stock}
+                            </span>
                         </div>
                         <h4 class="font-bold text-lg leading-tight mb-1">${prod.nombre}</h4>
                         <p class="text-gray-400 text-xs mb-2">${prod.sku || ''}</p>
@@ -447,7 +449,7 @@
         const existing = cart.find(item => item.id === prodId);
         const currentQty = existing ? existing.qty : 0;
         
-        if (currentQty + 1 > prod.stock) {
+        if (prod.tipo === 'stock' && (currentQty + 1 > prod.stock)) {
             Toast.show('No hay suficiente stock disponible en este piso.', 'warning');
             return;
         }
@@ -477,7 +479,7 @@
 
         // Validate stock again
         const prod = productsList.find(p => p.id === prodId);
-        if (newQty > prod.stock) {
+        if (prod.tipo === 'stock' && (newQty > prod.stock)) {
             Toast.show('Stock insuficiente.', 'warning');
             return;
         }
