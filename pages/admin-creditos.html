@@ -65,8 +65,8 @@
             <div class="flex-1 overflow-y-auto p-6 space-y-6">
                 <!-- Tabs -->
                 <div class="flex gap-4 border-b border-gray-700 mb-4">
-                    <button class="px-4 py-2 border-b-2 border-blue-500 text-blue-400 font-bold">Pedidos Pendientes</button>
-                    <!-- <button class="px-4 py-2 text-gray-500 hover:text-gray-300">Pagos Realizados</button> -->
+                    <button id="tabPedidos" class="px-4 py-2 border-b-2 border-blue-500 text-blue-400 font-bold transition-all">Pedidos Pendientes</button>
+                    <button id="tabPagos" class="px-4 py-2 text-gray-500 hover:text-gray-300 transition-all font-bold">Pagos Realizados</button>
                 </div>
 
                 <div id="detalleContent">
@@ -198,25 +198,75 @@
                 modalDetalle.classList.remove('hidden');
 
                 const res = await apiGet(`api/creditos/historial/${id}`);
-                const pending = res.creditos || [];
+                const pending = res.creditos?.filter(c => c.estado === 'pendiente') || [];
+                const history = res.creditos || [];
+                const payments = res.pagos || [];
                 
-                document.getElementById('modalTableBody').innerHTML = pending.map(cr => `
-                    <tr class="border-b border-gray-800/50">
-                        <td class="py-3 text-gray-400">${new Date(cr.fecha_inicio).toLocaleDateString()}</td>
-                        <td class="py-3 text-red-900/80 font-bold">${new Date(cr.fecha_vencimiento).toLocaleDateString()}</td>
+                window.currentHistorial = { pending, history, payments };
+                renderHistorialTab('pedidos');
+
+            } catch(e) {
+                console.error(e);
+                Toast.show('Error al cargar historial', 'error');
+            }
+        };
+
+        const tabPedidos = document.getElementById('tabPedidos');
+        const tabPagos = document.getElementById('tabPagos');
+
+        function renderHistorialTab(tab) {
+            const container = document.getElementById('modalTableBody');
+            const data = window.currentHistorial;
+
+            // Update tab styles
+            if (tab === 'pedidos') {
+                tabPedidos.classList.add('border-b-2', 'border-blue-500', 'text-blue-400');
+                tabPedidos.classList.remove('text-gray-500');
+                tabPagos.classList.remove('border-b-2', 'border-blue-500', 'text-blue-400');
+                tabPagos.classList.add('text-gray-500');
+
+                if (data.history.length === 0) {
+                    container.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-gray-500">No hay registros de crédito.</td></tr>';
+                    return;
+                }
+
+                container.innerHTML = data.history.map(cr => `
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-700/20">
+                        <td class="py-3 text-gray-400 text-[11px]">${new Date(cr.fecha_inicio).toLocaleDateString()}</td>
+                        <td class="py-3 text-[11px] ${cr.estado === 'pendiente' ? 'text-red-400 font-bold' : 'text-gray-500'}">${new Date(cr.fecha_vencimiento).toLocaleDateString()}</td>
                         <td class="py-3 font-black text-white">$${parseFloat(cr.monto_total).toFixed(2)}</td>
                         <td class="py-3">
-                            <span class="${cr.estado === 'pendiente' ? 'text-yellow-500' : 'text-green-500'} font-black text-[10px] uppercase">
+                            <span class="${cr.estado === 'pendiente' ? 'bg-yellow-900/30 text-yellow-500' : 'bg-green-900/30 text-green-500'} px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter">
                                 ${cr.estado}
                             </span>
                         </td>
                     </tr>
                 `).join('');
 
-            } catch(e) {
-                Toast.show('Error al cargar historial', 'error');
+            } else {
+                tabPagos.classList.add('border-b-2', 'border-blue-500', 'text-blue-400');
+                tabPagos.classList.remove('text-gray-500');
+                tabPedidos.classList.remove('border-b-2', 'border-blue-500', 'text-blue-400');
+                tabPedidos.classList.add('text-gray-500');
+
+                if (data.payments.length === 0) {
+                    container.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-gray-500 italic">No se han registrado pagos para este cliente.</td></tr>';
+                    return;
+                }
+
+                container.innerHTML = data.payments.map(p => `
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-700/20">
+                        <td class="py-3 text-gray-400 text-[11px]">${new Date(p.fecha_pago).toLocaleDateString()}</td>
+                        <td class="py-3 text-[11px] text-gray-500">${new Date(p.fecha_pago).toLocaleTimeString()}</td>
+                        <td class="py-3 font-black text-green-400">$${parseFloat(p.monto_pagado).toFixed(2)}</td>
+                        <td class="py-3 text-[10px] text-gray-500 italic">Recibido por: ${p.usuarios?.nombre || 'Admin'}</td>
+                    </tr>
+                `).join('');
             }
-        };
+        }
+
+        tabPedidos.onclick = () => renderHistorialTab('pedidos');
+        tabPagos.onclick = () => renderHistorialTab('pagos');
 
         searchInput.addEventListener('input', (e) => {
             const q = e.target.value.toLowerCase();

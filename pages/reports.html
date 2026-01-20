@@ -13,7 +13,14 @@
             <div id="topbar-slot"></div>
 
             <div class="p-6 max-w-[1600px] mx-auto">
-                <h1 class="text-3xl font-bold mb-6">Reporte de Ventas</h1>
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold" id="pageTitle">Reporte de Ventas</h1>
+                    <!-- Main Report Tabs -->
+                    <div class="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
+                        <button id="reportTabVentas" class="px-4 py-2 rounded-md bg-blue-600 text-white font-bold transition-all text-sm">Ventas</button>
+                        <button id="reportTabAbonos" class="px-4 py-2 rounded-md text-gray-400 hover:text-white transition-all text-sm font-bold">Abonos (Pagos)</button>
+                    </div>
+                </div>
 
                 <!-- Filters -->
                 <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-6 flex flex-wrap gap-4 items-end">
@@ -29,13 +36,7 @@
                         <label class="block text-xs text-gray-400 mb-1">Cliente (Nombre/Cédula)</label>
                         <input type="text" id="filterClient" placeholder="Todos" class="bg-gray-700 border border-gray-600 rounded p-2 text-white w-48">
                     </div>
-                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Piso</label>
-                        <select id="filterPiso" class="bg-gray-700 border border-gray-600 rounded p-2 text-white w-40">
-                             <option value="">Todos</option>
-                        </select>
-                    </div>
-                     <div>
+                      <div id="filterMetodoContainer">
                         <label class="block text-xs text-gray-400 mb-1">Método</label>
                         <select id="filterMetodo" class="bg-gray-700 border border-gray-600 rounded p-2 text-white w-40">
                              <option value="">Todos</option>
@@ -43,6 +44,13 @@
                              <option value="TARJETA">Tarjeta</option>
                              <option value="PAGO_MOVIL">Pago Móvil</option>
                              <option value="TRANSFERENCIA">Transferencia</option>
+                             <option value="CREDITO">Crédito</option>
+                        </select>
+                    </div>
+                    <div id="filterPisoContainer">
+                        <label class="block text-xs text-gray-400 mb-1">Piso</label>
+                        <select id="filterPiso" class="bg-gray-700 border border-gray-600 rounded p-2 text-white w-40">
+                             <option value="">Todos</option>
                         </select>
                     </div>
                     <button id="btnFilter" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2 rounded shadow-lg transition-transform active:scale-95">
@@ -74,7 +82,7 @@
                 <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-x-auto shadow-lg">
                     <table class="w-full text-left text-sm text-gray-300">
                         <thead class="bg-gray-700/50 uppercase font-bold text-gray-400 whitespace-nowrap">
-                            <tr>
+                            <tr id="tableHeaderVentas">
                                 <th class="px-6 py-3">Fecha</th>
                                 <th class="px-6 py-3">ID Venta</th>
                                 <th class="px-6 py-3">Cliente</th>
@@ -83,6 +91,13 @@
                                 <th class="px-6 py-3 text-right">Tasa</th>
                                 <th class="px-6 py-3 text-right text-green-400">Total USD</th>
                                 <th class="px-6 py-3 text-right text-blue-400">Total Bs</th>
+                            </tr>
+                            <tr id="tableHeaderAbonos" class="hidden">
+                                <th class="px-6 py-3">Fecha Pago</th>
+                                <th class="px-6 py-3">Cliente</th>
+                                <th class="px-6 py-3">Concepto/Crédito</th>
+                                <th class="px-6 py-3">Recibido por</th>
+                                <th class="px-6 py-3 text-right text-green-400">Monto USD</th>
                             </tr>
                         </thead>
                         <tbody id="reportTableBody" class="divide-y divide-gray-700">
@@ -136,11 +151,14 @@
             if (df) params.append('desde', df);
             if (dt) params.append('hasta', dt);
             if (client) params.append('cliente', client);
-            if (piso) params.append('piso', piso);
-            if (metodo) params.append('metodo', metodo);
+            if (currentReport === 'ventas') {
+                if (piso) params.append('piso', piso);
+                if (metodo) params.append('metodo', metodo);
+            }
 
             try {
-                const data = await apiGet(`api/reportes/ventas?${params.toString()}`);
+                const endpoint = currentReport === 'ventas' ? 'api/reportes/ventas' : 'api/reportes/pagos';
+                const data = await apiGet(`${endpoint}?${params.toString()}`);
                 renderTable(data);
                 calcTotals(data);
             } catch(e) {
@@ -155,33 +173,87 @@
                 return;
             }
 
-            tableBody.innerHTML = data.map(v => `
-                <tr class="hover:bg-gray-700/50 transition-colors">
-                    <td class="px-6 py-3 whitespace-nowrap text-gray-400">${new Date(v.created_at || v.fecha_venta).toLocaleString()}</td>
-                    <td class="px-6 py-3 font-mono text-xs text-gray-500">${v.id.split('-')[0]}...</td>
-                    <td class="px-6 py-3 font-bold text-white">
-                        ${v.clientes ? `${v.clientes.nombre} ${v.clientes.apellido || ''}` : 'S/N'}
-                        <div class="text-xs text-gray-500 font-normal">${v.clientes?.cedula || ''}</div>
-                    </td>
-                    <td class="px-6 py-3 text-gray-300 text-xs">${v.pisos?.nombre || '-'}</td>
-                    <td class="px-6 py-3">
-                        <span class="bg-gray-700 px-2 py-1 rounded text-xs">${v.metodo_pago}</span>
-                    </td>
-                    <td class="px-6 py-3 text-right font-mono text-xs">${v.tasa_cambio}</td>
-                    <td class="px-6 py-3 text-right font-bold text-green-400">$${parseFloat(v.total_usd || v.total || 0).toFixed(2)}</td>
-                    <td class="px-6 py-3 text-right font-bold text-blue-400">Bs ${parseFloat(v.total_bs || 0).toFixed(2)}</td>
-                </tr>
-            `).join('');
+            if (currentReport === 'ventas') {
+                tableBody.innerHTML = data.map(v => `
+                    <tr class="hover:bg-gray-700/50 transition-colors">
+                        <td class="px-6 py-3 whitespace-nowrap text-gray-400">${new Date(v.created_at || v.fecha_venta).toLocaleString()}</td>
+                        <td class="px-6 py-3 font-mono text-xs text-gray-500">${v.id.split('-')[0]}...</td>
+                        <td class="px-6 py-3 font-bold text-white">
+                            ${v.clientes ? `${v.clientes.nombre} ${v.clientes.apellido || ''}` : 'S/N'}
+                            <div class="text-xs text-gray-500 font-normal">${v.clientes?.cedula || ''}</div>
+                        </td>
+                        <td class="px-6 py-3 text-gray-300 text-xs">${v.pisos?.nombre || '-'}</td>
+                        <td class="px-6 py-3">
+                            <span class="bg-gray-700 px-2 py-1 rounded text-xs">${v.metodo_pago}</span>
+                        </td>
+                        <td class="px-6 py-3 text-right font-mono text-xs">${v.tasa_cambio}</td>
+                        <td class="px-6 py-3 text-right font-bold text-green-400">$${parseFloat(v.total_usd || v.total || 0).toFixed(2)}</td>
+                        <td class="px-6 py-3 text-right font-bold text-blue-400">Bs ${parseFloat(v.total_bs || 0).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tableBody.innerHTML = data.map(p => `
+                    <tr class="hover:bg-gray-700/50 transition-colors">
+                        <td class="px-6 py-3 whitespace-nowrap text-gray-400">${new Date(p.fecha_pago).toLocaleString()}</td>
+                        <td class="px-6 py-3 font-bold text-white">
+                            ${p.creditos?.clientes ? `${p.creditos.clientes.nombre} ${p.creditos.clientes.apellido || ''}` : 'S/N'}
+                            <div class="text-xs text-gray-500 font-normal">${p.creditos?.clientes?.cedula || ''}</div>
+                        </td>
+                        <td class="px-6 py-3 text-gray-300 text-xs">Abono a Crédito</td>
+                        <td class="px-6 py-3 italic text-gray-400">${p.usuarios?.nombre || 'Admin'}</td>
+                        <td class="px-6 py-3 text-right font-bold text-green-400">$${parseFloat(p.monto_pagado).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function calcTotals(data) {
-             const totalUSD = data.reduce((acc, curr) => acc + parseFloat(curr.total_usd || curr.total || 0), 0);
+             const totalUSD = data.reduce((acc, curr) => acc + parseFloat(curr.total_usd || curr.total || curr.monto_pagado || 0), 0);
              const totalBs = data.reduce((acc, curr) => acc + parseFloat(curr.total_bs || 0), 0);
              
              document.getElementById('statCount').textContent = data.length;
              document.getElementById('statTotalUSD').textContent = '$' + totalUSD.toFixed(2);
-             document.getElementById('statTotalBs').textContent = 'Bs ' + totalBs.toFixed(2);
+             document.getElementById('statTotalBs').textContent = currentReport === 'ventas' ? ('Bs ' + totalBs.toFixed(2)) : 'N/A';
         }
+
+        let currentReport = 'ventas';
+
+        function switchReport(report) {
+            currentReport = report;
+            const title = document.getElementById('pageTitle');
+            const tabVentas = document.getElementById('reportTabVentas');
+            const tabAbonos = document.getElementById('reportTabAbonos');
+            const headerVentas = document.getElementById('tableHeaderVentas');
+            const headerAbonos = document.getElementById('tableHeaderAbonos');
+            const pCont = document.getElementById('filterPisoContainer');
+            const mCont = document.getElementById('filterMetodoContainer');
+
+            if (report === 'ventas') {
+                title.textContent = 'Reporte de Ventas';
+                tabVentas.classList.add('bg-blue-600', 'text-white');
+                tabVentas.classList.remove('text-gray-400');
+                tabAbonos.classList.remove('bg-blue-600', 'text-white');
+                tabAbonos.classList.add('text-gray-400');
+                headerVentas.classList.remove('hidden');
+                headerAbonos.classList.add('hidden');
+                pCont.classList.remove('hidden');
+                mCont.classList.remove('hidden');
+            } else {
+                title.textContent = 'Reporte de Abonos (Cobranza)';
+                tabAbonos.classList.add('bg-blue-600', 'text-white');
+                tabAbonos.classList.remove('text-gray-400');
+                tabVentas.classList.remove('bg-blue-600', 'text-white');
+                tabVentas.classList.add('text-gray-400');
+                headerAbonos.classList.remove('hidden');
+                headerVentas.classList.add('hidden');
+                pCont.classList.add('hidden');
+                mCont.classList.add('hidden');
+            }
+            loadReport();
+        }
+
+        document.getElementById('reportTabVentas').onclick = () => switchReport('ventas');
+        document.getElementById('reportTabAbonos').onclick = () => switchReport('abonos');
 
         btnFilter.addEventListener('click', loadReport);
         btnReset.addEventListener('click', () => {
