@@ -509,7 +509,8 @@
             modalClient.classList.add('hidden');
             Toast.show('Cliente creado y seleccionado', 'success');
         } catch(err) {
-            Toast.show('Error al crear cliente: ' + (err.message || 'Error desconocido'), 'error');
+            const errorMsg = err.error || err.message || 'Error desconocido';
+            Toast.show('Error al crear cliente: ' + errorMsg, 'error');
         }
     });
 
