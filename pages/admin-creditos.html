@@ -87,20 +87,33 @@
             </div>
 
             <div class="p-6 border-t border-gray-700 bg-gray-900/50 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="text-center md:text-left">
-                    <p class="text-xs text-gray-500 uppercase font-black">Total a Cobrar</p>
-                    <p class="text-3xl font-black text-green-400" id="modalTotalPagar">$0.00</p>
+                <div class="flex gap-8">
+                    <div class="text-center md:text-left">
+                        <p class="text-[10px] text-gray-500 uppercase font-black">Deuda Histórica</p>
+                        <p class="text-xl font-black text-white" id="modalTotalHistorico">$0.00</p>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <p class="text-[10px] text-gray-500 uppercase font-black">Pagos Realizados</p>
+                        <p class="text-xl font-black text-blue-400" id="modalTotalPagado">$0.00</p>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <p class="text-[10px] text-gray-500 uppercase font-black">Saldo Pendiente</p>
+                        <p class="text-3xl font-black text-green-400" id="modalTotalPagar">$0.00</p>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button id="btnMarcarPago" class="px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl shadow-xl shadow-green-900/20 active:scale-95 transition-all">
-                        MARCAR PAGO TOTAL
+                <div class="flex gap-3">
+                    <button id="btnAbonar" class="px-6 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl shadow-xl shadow-blue-900/20 active:scale-95 transition-all">
+                        REGISTRAR ABONO
+                    </button>
+                    <button id="btnMarcarPago" class="px-6 py-4 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl shadow-xl shadow-green-900/20 active:scale-95 transition-all">
+                        PAGO TOTAL
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Confirmación de Pago -->
+    <!-- Confirmación de Pago Total -->
     <div id="modalConfirmar" class="hidden fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4">
         <div class="bg-gray-800 rounded-3xl p-8 max-w-sm w-full border border-gray-700 text-center shadow-2xl">
             <div class="mb-6 text-yellow-500 flex justify-center">
@@ -108,11 +121,42 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
             </div>
-            <h3 class="text-2xl font-black text-white mb-2">¿Confirmar Pago?</h3>
+            <h3 class="text-2xl font-black text-white mb-2">¿Confirmar Pago Total?</h3>
             <p class="text-gray-400 text-sm mb-8">Esta acción registrará el pago completo de todas las deudas del cliente y actualizará su saldo a <span class="text-green-400 font-bold">$0.00</span>.</p>
             <div class="flex gap-3">
                 <button id="btnCancelConfirm" class="flex-1 px-4 py-4 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-bold transition-colors">Cancelar</button>
-                <button id="btnSuccessConfirm" class="flex-1 px-4 py-4 bg-green-600 hover:bg-green-500 rounded-xl text-white font-black shadow-lg shadow-green-900/30 transition-all">SÍ, COBRAR</button>
+                <button id="btnSuccessConfirm" class="flex-1 px-4 py-4 bg-green-600 hover:bg-green-500 rounded-xl text-white font-black shadow-lg shadow-green-900/30 transition-all">SÍ, COBRAR TODO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Abono Parcial -->
+    <div id="modalAbono" class="hidden fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-3xl p-8 max-w-md w-full border border-gray-700 shadow-2xl">
+            <h3 class="text-2xl font-black text-white mb-4">Registrar Abono</h3>
+            <p class="text-gray-400 text-sm mb-6">Ingresa el monto que el cliente está pagando hoy.</p>
+            
+            <div class="space-y-4 mb-8">
+                <div>
+                    <label class="block text-[10px] text-gray-500 uppercase font-black mb-1">Monto del Abono (USD)</label>
+                    <input type="number" id="inputMontoAbono" step="0.01" min="0.01" placeholder="0.00" 
+                        class="w-full bg-gray-900 border border-gray-700 rounded-xl px-5 py-3 text-2xl font-black text-green-400 outline-none focus:border-blue-500">
+                </div>
+                <div class="p-4 bg-gray-900/50 rounded-xl space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-500">Deuda actual:</span>
+                        <span class="text-white font-bold" id="lblAbonoDeudaActual">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xs pt-2 border-t border-gray-800">
+                        <span class="text-gray-500">Nuevo Saldo:</span>
+                        <span class="text-blue-400 font-bold" id="lblAbonoNuevoSaldo">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="btnCancelAbono" class="flex-1 px-4 py-4 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-bold transition-colors">Cancelar</button>
+                <button id="btnSuccessAbono" class="flex-1 px-4 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-black shadow-lg shadow-blue-900/30 transition-all">REGISTRAR PAGO</button>
             </div>
         </div>
     </div>
@@ -198,11 +242,25 @@
                 modalDetalle.classList.remove('hidden');
 
                 const res = await apiGet(`api/creditos/historial/${id}`);
-                const pending = res.creditos?.filter(c => c.estado === 'pendiente') || [];
+                const pending = res.creditos?.filter(cr => cr.estado === 'pendiente') || [];
                 const history = res.creditos || [];
                 const payments = res.pagos || [];
                 
-                window.currentHistorial = { pending, history, payments };
+                // Totals for modal
+                const totalHist = history.reduce((acc, cr) => acc + parseFloat(cr.monto_total), 0);
+                const totalPaid = payments.reduce((acc, p) => acc + parseFloat(p.monto_pagado), 0);
+                const totalRem = totalHist - totalPaid;
+
+                document.getElementById('modalTotalHistorico').textContent = `$${totalHist.toFixed(2)}`;
+                document.getElementById('modalTotalPagado').textContent = `$${totalPaid.toFixed(2)}`;
+                document.getElementById('modalTotalPagar').textContent = `$${totalRem.toFixed(2)}`;
+                
+                // Setup for Abono Modal
+                document.getElementById('lblAbonoDeudaActual').textContent = `$${totalRem.toFixed(2)}`;
+                document.getElementById('lblAbonoNuevoSaldo').textContent = `$${totalRem.toFixed(2)}`;
+                document.getElementById('inputMontoAbono').value = '';
+
+                window.currentHistorial = { pending, history, payments, totalRem };
                 renderHistorialTab('pedidos');
 
             } catch(e) {
@@ -281,6 +339,46 @@
         document.getElementById('closeModal').addEventListener('click', () => modalDetalle.classList.add('hidden'));
         document.getElementById('btnMarcarPago').addEventListener('click', () => modalConfirmar.classList.remove('hidden'));
         document.getElementById('btnCancelConfirm').addEventListener('click', () => modalConfirmar.classList.add('hidden'));
+
+        // Abono Parcial Events
+        const modalAbono = document.getElementById('modalAbono');
+        const inputMontoAbono = document.getElementById('inputMontoAbono');
+        const btnAbonar = document.getElementById('btnAbonar');
+
+        btnAbonar.onclick = () => modalAbono.classList.remove('hidden');
+        document.getElementById('btnCancelAbono').onclick = () => modalAbono.classList.add('hidden');
+
+        inputMontoAbono.addEventListener('input', () => {
+             const abono = parseFloat(inputMontoAbono.value) || 0;
+             const actual = window.currentHistorial?.totalRem || 0;
+             const nuevo = Math.max(0, actual - abono);
+             document.getElementById('lblAbonoNuevoSaldo').textContent = `$${nuevo.toFixed(2)}`;
+        });
+
+        document.getElementById('btnSuccessAbono').addEventListener('click', async () => {
+             const monto = parseFloat(inputMontoAbono.value);
+             if (!monto || monto <= 0) return Toast.show('Ingresa un monto válido', 'error');
+             if (monto > window.currentHistorial.totalRem) {
+                 if (!confirm(`El abono ($${monto}) es mayor a la deuda ($${window.currentHistorial.totalRem}). ¿Deseas continuar?`)) return;
+             }
+
+             try {
+                document.getElementById('btnSuccessAbono').disabled = true;
+                await apiPost('api/creditos/abonar', {
+                    cliente_id: selectedClientId,
+                    monto: monto,
+                    usuario_id: user.id
+                });
+                Toast.show('Abono registrado con éxito', 'success');
+                modalAbono.classList.add('hidden');
+                modalDetalle.classList.add('hidden');
+                loadCredits();
+             } catch(e) {
+                Toast.show('Error al registrar abono', 'error');
+             } finally {
+                document.getElementById('btnSuccessAbono').disabled = false;
+             }
+        });
 
         document.getElementById('btnSuccessConfirm').addEventListener('click', async () => {
             try {
