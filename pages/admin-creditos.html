@@ -74,6 +74,7 @@
                         <thead class="text-gray-500 uppercase font-bold border-b border-gray-700">
                             <tr>
                                 <th class="py-2">Fecha</th>
+                                <th class="py-2">Productos</th>
                                 <th class="py-2">Vencimiento</th>
                                 <th class="py-2">Monto</th>
                                 <th class="py-2">Estado</th>
@@ -288,9 +289,15 @@
                     return;
                 }
 
-                container.innerHTML = data.history.map(cr => `
+                container.innerHTML = data.history.map(cr => {
+                    const productsList = cr.ventas?.detalle_ventas?.map(d => 
+                        `<div class="text-[10px] text-gray-300">• ${d.productos?.nombre} (x${d.cantidad})</div>`
+                    ).join('') || '<span class="text-gray-600 italic">Sin detalle</span>';
+
+                    return `
                     <tr class="border-b border-gray-800/50 hover:bg-gray-700/20">
                         <td class="py-3 text-gray-400 text-[11px]">${new Date(cr.fecha_inicio).toLocaleDateString()}</td>
+                        <td class="py-3">${productsList}</td>
                         <td class="py-3 text-[11px] ${cr.estado === 'pendiente' ? 'text-red-400 font-bold' : 'text-gray-500'}">${new Date(cr.fecha_vencimiento).toLocaleDateString()}</td>
                         <td class="py-3 font-black text-white">$${parseFloat(cr.monto_total).toFixed(2)}</td>
                         <td class="py-3">
@@ -299,7 +306,8 @@
                             </span>
                         </td>
                     </tr>
-                `).join('');
+                    `;
+                }).join('');
 
             } else {
                 tabPagos.classList.add('border-b-2', 'border-blue-500', 'text-blue-400');
