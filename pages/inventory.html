@@ -45,6 +45,21 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination Controls -->
+            <div id="paginationControls" class="flex items-center justify-between px-6 py-4 border-t border-gray-700">
+                <div class="text-sm text-gray-400">
+                    Mostrando <span id="pageInfo" class="font-semibold text-white">1-5</span> de <span id="totalItems" class="font-semibold text-white">0</span>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btnPrevPage" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium" disabled>
+                        ← Anterior
+                    </button>
+                    <button id="btnNextPage" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium" disabled>
+                        Siguiente →
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="mt-8">
@@ -65,6 +80,21 @@
                         <tbody id="movementsTableBody" class="divide-y divide-gray-700">
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Pagination Controls for Movements -->
+                <div id="movementsPaginationControls" class="flex items-center justify-between px-6 py-4 border-t border-gray-700">
+                    <div class="text-sm text-gray-400">
+                        Mostrando <span id="movementsPageInfo" class="font-semibold text-white">1-5</span> de <span id="totalMovements" class="font-semibold text-white">0</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="btnPrevMovements" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium" disabled>
+                            ← Anterior
+                        </button>
+                        <button id="btnNextMovements" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium" disabled>
+                            Siguiente →
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -196,6 +226,15 @@
     const adjProductId = document.getElementById('adjProductId');
     const adjPisoId = document.getElementById('adjPisoId');
 
+    // Pagination variables
+    let currentPage = 1;
+    const itemsPerPage = 5;
+    let allInventoryData = [];
+    
+    let currentMovementsPage = 1;
+    const movementsPerPage = 5;
+    let allMovementsData = [];
+
     window.loadPisos = async () => {
         try {
             const pisos = await apiGet('api/pisos');
@@ -213,13 +252,31 @@
             const params = pisoId ? { piso_id: pisoId } : {};
             const data = await apiGet('api/inventario', params);
             
-            inventoryBody.innerHTML = '';
-            if (!data || data.length === 0) {
+            allInventoryData = data || [];
+            currentPage = 1;
+            
+            if (allInventoryData.length === 0) {
                 inventoryBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No hay registros de inventario.</td></tr>';
+                updatePaginationControls();
                 return;
             }
 
-            data.forEach(item => {
+            renderInventoryPage();
+            loadMovements();
+
+        } catch (error) {
+            inventoryBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
+        }
+    };
+
+    function renderInventoryPage() {
+        inventoryBody.innerHTML = '';
+        
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageData = allInventoryData.slice(startIndex, endIndex);
+
+        pageData.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-700/50 transition-colors border-b border-gray-700 last:border-0';
                 
@@ -252,43 +309,77 @@
                 inventoryBody.appendChild(tr);
             });
 
-            loadMovements(); 
+        updatePaginationControls();
+    }
 
-        } catch (error) {
-            inventoryBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
-        }
-    };
+    function updatePaginationControls() {
+        const totalPages = Math.ceil(allInventoryData.length / itemsPerPage);
+        const startItem = allInventoryData.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+        const endItem = Math.min(currentPage * itemsPerPage, allInventoryData.length);
+
+        document.getElementById('totalItems').textContent = allInventoryData.length;
+        document.getElementById('pageInfo').textContent = `${startItem}-${endItem}`;
+        
+        document.getElementById('btnPrevPage').disabled = currentPage === 1;
+        document.getElementById('btnNextPage').disabled = currentPage >= totalPages;
+    }
 
     window.loadMovements = async () => {
         try {
             movementsBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Cargando historial...</td></tr>';
             const data = await apiGet('api/inventario/movimientos'); 
 
-            movementsBody.innerHTML = '';
+            allMovementsData = data || [];
+            currentMovementsPage = 1;
             
-            if (!data || data.length === 0) {
+            if (allMovementsData.length === 0) {
                 movementsBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Sin movimientos recientes</td></tr>';
+                updateMovementsPaginationControls();
                 return;
             }
 
-            data.forEach(mov => {
-                const tr = document.createElement('tr');
-                tr.className = 'border-b border-gray-700 hover:bg-gray-700/30';
-                const date = new Date(mov.fecha).toLocaleString();
-                const typeColor = mov.tipo_movimiento === 'ENTRADA' ? 'text-green-400' : (mov.tipo_movimiento === 'SALIDA' ? 'text-red-400' : 'text-blue-400');
-                
-                tr.innerHTML = `
-                    <td class="px-6 py-4 text-xs text-gray-400">${date}</td>
-                    <td class="px-6 py-4 text-sm font-medium">${mov.productos?.nombre || '-'}</td>
-                    <td class="px-6 py-4 text-sm text-gray-400">${mov.pisos?.nombre || '-'}</td>
-                    <td class="px-6 py-4 text-xs font-bold ${typeColor}">${mov.tipo_movimiento}</td>
-                    <td class="px-6 py-4 text-right font-mono">${mov.cantidad > 0 ? '+' : ''}${mov.cantidad}</td>
-                    <td class="px-6 py-4 text-xs text-gray-500 italic max-w-xs truncate">${mov.observacion || ''}</td>
-                `;
-                movementsBody.appendChild(tr);
-            });
+            renderMovementsPage();
         } catch(e) { console.error(e); }
     };
+
+    function renderMovementsPage() {
+        movementsBody.innerHTML = '';
+        
+        const startIndex = (currentMovementsPage - 1) * movementsPerPage;
+        const endIndex = startIndex + movementsPerPage;
+        const pageData = allMovementsData.slice(startIndex, endIndex);
+        
+        pageData.forEach(mov => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-gray-700 hover:bg-gray-700/30';
+            const date = new Date(mov.fecha).toLocaleString();
+            const typeColor = mov.tipo_movimiento === 'ENTRADA' ? 'text-green-400' : (mov.tipo_movimiento === 'SALIDA' ? 'text-red-400' : 'text-blue-400');
+            
+            tr.innerHTML = `
+                <td class="px-6 py-4 text-xs text-gray-400">${date}</td>
+                <td class="px-6 py-4 text-sm font-medium">${mov.productos?.nombre || '-'}</td>
+                <td class="px-6 py-4 text-sm text-gray-400">${mov.pisos?.nombre || '-'}</td>
+                <td class="px-6 py-4 text-xs font-bold ${typeColor}">${mov.tipo_movimiento}</td>
+                <td class="px-6 py-4 text-right font-mono">${mov.cantidad > 0 ? '+' : ''}${mov.cantidad}</td>
+                <td class="px-6 py-4 text-xs text-gray-500 italic max-w-xs truncate">${mov.observacion || ''}</td>
+            `;
+            movementsBody.appendChild(tr);
+        });
+
+        updateMovementsPaginationControls();
+    }
+
+    function updateMovementsPaginationControls() {
+        const totalPages = Math.ceil(allMovementsData.length / movementsPerPage);
+        const startItem = allMovementsData.length === 0 ? 0 : (currentMovementsPage - 1) * movementsPerPage + 1;
+        const endItem = Math.min(currentMovementsPage * movementsPerPage, allMovementsData.length);
+
+        document.getElementById('totalMovements').textContent = allMovementsData.length;
+        document.getElementById('movementsPageInfo').textContent = `${startItem}-${endItem}`;
+        
+        document.getElementById('btnPrevMovements').disabled = currentMovementsPage === 1;
+        document.getElementById('btnNextMovements').disabled = currentMovementsPage >= totalPages;
+    }
 
 
 
@@ -370,6 +461,38 @@
 
     filterPiso.addEventListener('change', loadInventory);
 
+    // Pagination event listeners
+    document.getElementById('btnPrevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderInventoryPage();
+        }
+    });
+
+    document.getElementById('btnNextPage').addEventListener('click', () => {
+        const totalPages = Math.ceil(allInventoryData.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderInventoryPage();
+        }
+    });
+
+    // Movements Pagination event listeners
+    document.getElementById('btnPrevMovements').addEventListener('click', () => {
+        if (currentMovementsPage > 1) {
+            currentMovementsPage--;
+            renderMovementsPage();
+        }
+    });
+
+    document.getElementById('btnNextMovements').addEventListener('click', () => {
+        const totalPages = Math.ceil(allMovementsData.length / movementsPerPage);
+        if (currentMovementsPage < totalPages) {
+            currentMovementsPage++;
+            renderMovementsPage();
+        }
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
@@ -418,5 +541,6 @@
 
     await loadPisos();
     loadInventory();
+  </script>
 </body>
 </html>
