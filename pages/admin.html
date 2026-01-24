@@ -25,22 +25,22 @@
           <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
               <div class="text-sm text-gray-400">Ventas hoy</div>
-              <div class="mt-2 text-3xl font-extrabold">$ 1,245.50</div>
+              <div class="mt-2 text-3xl font-extrabold">$ ...</div>
               <div class="mt-1 text-xs text-green-400">+12% vs ayer</div>
             </div>
             <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
               <div class="text-sm text-gray-400">Créditos hoy</div>
-              <div class="mt-2 text-3xl font-extrabold">$ 320.00</div>
+              <div class="mt-2 text-3xl font-extrabold">$ ...</div>
               <div class="mt-1 text-xs text-yellow-400">8 ventas a crédito</div>
             </div>
             <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
               <div class="text-sm text-gray-400">Pagos pendientes</div>
-              <div class="mt-2 text-3xl font-extrabold">5</div>
+              <div class="mt-2 text-3xl font-extrabold">...</div>
               <div class="mt-1 text-xs text-red-400">Requieren validación</div>
             </div>
             <div class="bg-gray-800 rounded-2xl p-4 border border-gray-700">
               <div class="text-sm text-gray-400">Stock bajo</div>
-              <div class="mt-2 text-3xl font-extrabold">12</div>
+              <div class="mt-2 text-3xl font-extrabold">...</div>
               <div class="mt-1 text-xs text-gray-400">Productos críticos</div>
             </div>
           </div>
@@ -56,30 +56,8 @@
                 <button class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">Ver todo</button>
               </div>
 
-              <div class="mt-4 space-y-3">
-                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
-                  <div class="flex items-center justify-between">
-                    <div class="font-semibold">Pago reportado · Juan Pérez</div>
-                    <span class="text-xs px-2 py-1 rounded bg-yellow-600">pending</span>
-                  </div>
-                  <div class="text-xs text-gray-400 mt-1">VES 1,200.00 · Ref: 000123 · hace 10 min</div>
-                </div>
-
-                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
-                  <div class="flex items-center justify-between">
-                    <div class="font-semibold">Venta confirmada · Piso 2</div>
-                    <span class="text-xs px-2 py-1 rounded bg-green-600">confirmed</span>
-                  </div>
-                  <div class="text-xs text-gray-400 mt-1">$ 18.50 · efectivo · hace 18 min</div>
-                </div>
-
-                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
-                  <div class="flex items-center justify-between">
-                    <div class="font-semibold">Tasa actualizada</div>
-                    <span class="text-xs px-2 py-1 rounded bg-gray-700">rate</span>
-                  </div>
-                  <div class="text-xs text-gray-400 mt-1">EUR→VES 42.123456 · EUR→USD 1.080000 · hoy</div>
-                </div>
+              <div class="mt-4 space-y-3" id="recentActivityList">
+                <div class="text-sm text-gray-400">Cargando actividad...</div>
               </div>
             </div>
 
@@ -165,37 +143,8 @@
                       <th class="text-left py-2">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody class="text-gray-200">
-                    <tr class="border-b border-gray-700">
-                      <td class="py-2">2025-12-13</td>
-                      <td class="py-2">42.123456</td>
-                      <td class="py-2">1.080000</td>
-                      <td class="py-2">39.003200</td>
-                      <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-gray-700">manual</span></td>
-                      <td class="py-2">
-                        <button class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs">Editar</button>
-                      </td>
-                    </tr>
-                    <tr class="border-b border-gray-700">
-                      <td class="py-2">2025-12-12</td>
-                      <td class="py-2">41.900000</td>
-                      <td class="py-2">1.079000</td>
-                      <td class="py-2">38.832250</td>
-                      <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-gray-700">manual</span></td>
-                      <td class="py-2">
-                        <button class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs">Editar</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="py-2">2025-12-11</td>
-                      <td class="py-2">41.500000</td>
-                      <td class="py-2">1.081000</td>
-                      <td class="py-2">38.397780</td>
-                      <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-gray-700">manual</span></td>
-                      <td class="py-2">
-                        <button class="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-xs">Editar</button>
-                      </td>
-                    </tr>
+                  <tbody class="text-gray-200" id="ratesTableBody">
+                    <tr><td colspan="6" class="text-center py-4 text-gray-400">Cargando tasas...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -239,57 +188,8 @@
                     <th class="text-left py-2">Acciones</th>
                   </tr>
                 </thead>
-                <tbody class="text-gray-200">
-                  <tr class="border-b border-gray-700">
-                    <td class="py-2">
-                      <div class="font-semibold">Juan Pérez</div>
-                      <div class="text-xs text-gray-400">ID: 102 · hace 10 min</div>
-                    </td>
-                    <td class="py-2 font-semibold">1,200.00</td>
-                    <td class="py-2">VES</td>
-                    <td class="py-2">000123</td>
-                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">pending</span></td>
-                    <td class="py-2">
-                      <button data-open-modal="payment"
-                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
-                        Revisar
-                      </button>
-                    </td>
-                  </tr>
-
-                  <tr class="border-b border-gray-700">
-                    <td class="py-2">
-                      <div class="font-semibold">María Gómez</div>
-                      <div class="text-xs text-gray-400">ID: 103 · hace 40 min</div>
-                    </td>
-                    <td class="py-2 font-semibold">25.00</td>
-                    <td class="py-2">USD</td>
-                    <td class="py-2">TRF-88991</td>
-                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">Pendiente</span></td>
-                    <td class="py-2">
-                      <button data-open-modal="payment"
-                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
-                        Revisar
-                      </button>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td class="py-2">
-                      <div class="font-semibold">Carlos Ruiz</div>
-                      <div class="text-xs text-gray-400">ID: 104 · hace 2 h</div>
-                    </td>
-                    <td class="py-2 font-semibold">18.00</td>
-                    <td class="py-2">USD</td>
-                    <td class="py-2">PM-4432</td>
-                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">Pendiente</span></td>
-                    <td class="py-2">
-                      <button data-open-modal="payment"
-                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
-                        Revisar
-                      </button>
-                    </td>
-                  </tr>
+                <tbody class="text-gray-200" id="paymentsTableBody">
+                  <tr><td colspan="6" class="text-center py-4 text-gray-400">Cargando pagos...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -314,32 +214,9 @@
               </div>
             </div>
 
-            <div class="mt-4 grid md:grid-cols-3 gap-3">
-              <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
-                <div class="flex items-center justify-between">
-                  <div class="font-bold">Piso 1</div>
-                  <div class="text-xs text-gray-400">12 ventas</div>
-                </div>
-                <div class="mt-2 text-2xl font-extrabold">$ 420.00</div>
-                <div class="mt-2 text-xs text-gray-300">Contado: $360 · Crédito: $60</div>
-              </div>
-
-              <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
-                <div class="flex items-center justify-between">
-                  <div class="font-bold">Piso 2</div>
-                  <div class="text-xs text-gray-400">18 ventas</div>
-                </div>
-                <div class="mt-2 text-2xl font-extrabold">$ 610.50</div>
-                <div class="mt-2 text-xs text-gray-300">Contado: $520 · Crédito: $90.5</div>
-              </div>
-
-              <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
-                <div class="flex items-center justify-between">
-                  <div class="font-bold">Piso 3</div>
-                  <div class="text-xs text-gray-400">9 ventas</div>
-                </div>
-                <div class="mt-2 text-2xl font-extrabold">$ 215.00</div>
-                <div class="mt-2 text-xs text-gray-300">Contado: $195 · Crédito: $20</div>
+            <div class="mt-4 grid md:grid-cols-3 gap-3" id="reportsKPI">
+              <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700 text-gray-400 text-center">
+                 Cargando reporte...
               </div>
             </div>
 
@@ -354,28 +231,8 @@
                     <th class="text-left py-2">Crédito</th>
                   </tr>
                 </thead>
-                <tbody class="text-gray-200">
-                  <tr class="border-b border-gray-700">
-                    <td class="py-2">Piso 1</td>
-                    <td class="py-2">12</td>
-                    <td class="py-2">$420.00</td>
-                    <td class="py-2">$360.00</td>
-                    <td class="py-2">$60.00</td>
-                  </tr>
-                  <tr class="border-b border-gray-700">
-                    <td class="py-2">Piso 2</td>
-                    <td class="py-2">18</td>
-                    <td class="py-2">$610.50</td>
-                    <td class="py-2">$520.00</td>
-                    <td class="py-2">$90.50</td>
-                  </tr>
-                  <tr>
-                    <td class="py-2">Piso 3</td>
-                    <td class="py-2">9</td>
-                    <td class="py-2">$215.00</td>
-                    <td class="py-2">$195.00</td>
-                    <td class="py-2">$20.00</td>
-                  </tr>
+                <tbody class="text-gray-200" id="reportsTableBody">
+                   <tr><td colspan="5" class="text-center py-4 text-gray-400">Cargando detalles...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -413,28 +270,8 @@
                     <th class="text-left py-2">Estado</th>
                   </tr>
                 </thead>
-                <tbody class="text-gray-200">
-                  <tr class="border-b border-gray-700">
-                    <td class="py-2 font-semibold">Agua 600ml</td>
-                    <td class="py-2">Bebidas</td>
-                    <td class="py-2">8</td>
-                    <td class="py-2">10</td>
-                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-red-600">bajo</span></td>
-                  </tr>
-                  <tr class="border-b border-gray-700">
-                    <td class="py-2 font-semibold">Nestea</td>
-                    <td class="py-2">Bebidas</td>
-                    <td class="py-2">22</td>
-                    <td class="py-2">10</td>
-                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-green-600">ok</span></td>
-                  </tr>
-                  <tr>
-                    <td class="py-2 font-semibold">Galletas</td>
-                    <td class="py-2">Postres</td>
-                    <td class="py-2">11</td>
-                    <td class="py-2">10</td>
-                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-yellow-600">atento</span></td>
-                  </tr>
+                <tbody class="text-gray-200" id="inventoryTableBody">
+                   <tr><td colspan="5" class="text-center py-4 text-gray-400">Cargando inventario...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -475,40 +312,8 @@
                     <th class="text-left py-2">Acciones</th>
                   </tr>
                 </thead>
-                <tbody class="text-gray-200">
-                  <tr class="border-b border-gray-700">
-                    <td class="py-2">
-                      <div class="font-semibold">Juan Pérez</div>
-                      <div class="text-xs text-gray-400">CI: V-12345678</div>
-                    </td>
-                    <td class="py-2">0414-0000000</td>
-                    <td class="py-2">$200.00</td>
-                    <td class="py-2">$85.50</td>
-                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-green-600">activo</span></td>
-                    <td class="py-2">
-                      <button data-open-modal="customer"
-                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td class="py-2">
-                      <div class="font-semibold">María Gómez</div>
-                      <div class="text-xs text-gray-400">CI: V-87654321</div>
-                    </td>
-                    <td class="py-2">0424-0000000</td>
-                    <td class="py-2">$150.00</td>
-                    <td class="py-2">$0.00</td>
-                    <td class="py-2"><span class="text-xs px-2 py-1 rounded bg-green-600">activo</span></td>
-                    <td class="py-2">
-                      <button data-open-modal="customer"
-                        class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm">
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
+                <tbody class="text-gray-200" id="customersTableBody">
+                    <tr><td colspan="6" class="text-center py-4 text-gray-400">Cargando clientes...</td></tr>
                 </tbody>
               </table>
             </div>
